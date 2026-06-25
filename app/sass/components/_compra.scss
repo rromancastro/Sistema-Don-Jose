@@ -1,0 +1,176 @@
+#compraContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: var(--space-page);
+}
+
+.compraCampo {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    label {
+        color: #0F172A;
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    select,
+    input {
+        width: 100%;
+        height: 62px;
+        border: 2px solid #D1D5DC;
+        border-radius: 14px;
+        background-color: #fff;
+        color: #020617;
+        font-size: 18px;
+        outline: none;
+        padding: 0 20px;
+
+        &:focus {
+            border-color: #F54900;
+        }
+    }
+}
+
+.compraCrearProductoBtn {
+    width: 100%;
+    min-height: 52px;
+    border: 2px dashed #FDBA74;
+    border-radius: 0;
+    background-color: #fff;
+    color: #F54900;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+
+    svg {
+        font-size: 18px;
+    }
+}
+
+.compraCrearProducto {
+    width: 100%;
+    border: 2px solid #FDBA74;
+    border-radius: 14px;
+    background-color: #FFF7ED;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    >div {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        p {
+            color: #0F172A;
+            font-weight: 500;
+        }
+
+        button {
+            border: 0;
+            background-color: transparent;
+            color: #64748B;
+            cursor: pointer;
+            display: flex;
+            padding: 0;
+
+            svg {
+                font-size: 18px;
+            }
+        }
+    }
+
+    form {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+
+        input {
+            width: 100%;
+            height: 52px;
+            border: 2px solid #F54900;
+            border-radius: 9px;
+            background-color: #FFF7ED;
+            color: #0F172A;
+            font-size: 16px;
+            outline: none;
+            padding: 0 12px;
+
+            &:focus {
+                border-color: #FF6900;
+            }
+        }
+
+        button {
+            width: 100%;
+            border: 0;
+            border-radius: 8px;
+            background-color: #F54900;
+            color: #fff;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 16px;
+
+            svg {
+                font-size: 16px;
+            }
+        }
+    }
+}
+
+.compraTotal {
+    border: 2px solid #FDBA74;
+    border-radius: 14px;
+    background-color: #FFF7ED;
+    padding: 20px 16px;
+
+    p {
+        color: #364163;
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+
+    span {
+        color: #F54900;
+        font-size: 26px;
+    }
+}
+
+.compraRegistrarBtn {
+    width: 100%;
+    border: 0;
+    border-radius: 9px;
+    background-color: #F54900;
+    box-shadow: 0 5px 10px #0000001e;
+    color: #fff;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 22px;
+
+    svg {
+        font-size: 18px;
+    }
+
+    &:disabled {
+        background-color: #94A3B8;
+        cursor: not-allowed;
+    }
+}

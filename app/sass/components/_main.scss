@@ -1,0 +1,133 @@
+.main-nav {
+    flex-direction: column;
+    align-items: start;gap: 8px;
+    img {
+        height: 60px;
+        width: auto;
+    }
+
+    h1 {
+        font-weight: 400;
+        color: #fff;
+    }
+}
+
+#mainInfoCardsContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    >div {
+        display: flex;
+        gap: 16px;
+    }
+}
+
+.mainInfoCard {
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    border-radius: 16px;
+    gap: 16px;
+    width: 100%;
+
+    div {
+        width: 100%;
+        padding: 16px;
+        display: flex;
+        border-radius: 16px;
+
+        svg {
+            color: #fff;
+            font-size: 28px;
+        }
+    }
+
+    p {
+        &:nth-child(2) {
+            color: #4A5565;
+            font-size: 16px;
+        }
+
+        &:nth-child(3) {
+            color: #000;
+            font-size: 28px;
+        }
+    }
+}
+
+#mainAccionesContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    >div {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+}
+
+.accionesCard {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+    padding: 24px;
+
+    p {
+        color: #fff;
+        font-size: 18px;
+        font-weight: 500;
+    }
+
+    svg {
+        color: #fff;
+        font-size: 28px;
+
+        &:last-of-type {
+            margin-left: auto;
+        }
+    }
+
+    &:hover {
+        filter: brightness(.8);
+    }
+}
+
+.gestionContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    >div {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto;
+        gap: 16px;
+    }
+}
+
+.gestionCard {
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    gap: 16px;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid #DDD6FF;
+
+    svg {
+        color: #7010E8;
+        font-size: 28px;
+    }
+    p {
+        color: #7010E8;
+        font-size: 16px;
+        font-weight: 500;
+    }
+
+    &:active {
+        background-color: #f0f0f0;
+    }
+}

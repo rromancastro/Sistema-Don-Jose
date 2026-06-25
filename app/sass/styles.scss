@@ -1,0 +1,138 @@
+// sass --watch app/sass/styles.scss app/globals.css
+@use './components/main';
+@use './components/proveedores';
+@use './components/clientes';
+@use './components/venta';
+@use './components/compra';
+@use './components/stock';
+@use './components/documentos';
+@use './components/presupuestos';
+
+@font-face {
+    font-family: 'Roboto';
+    src: url('/fonts/Roboto.ttf');
+    font-display: swap;
+}
+
+:root {
+    --font-size-meta: 14px;
+    --font-size-body: 16px;
+    --font-size-title: 20px;
+    --font-size-total: 26px;
+    --space-page: 16px;
+    --space-card: 16px;
+    --space-field: 12px;
+    --control-height: 52px;
+    --radius-card: 14px;
+    --radius-control: 9px;
+}
+
+html,
+body,
+*,
+*::before,
+*::after {
+    font-family: 'Roboto', sans-serif;
+}
+
+body {
+    color: #0F172A;
+    font-size: var(--font-size-body);
+    line-height: 1.35;
+}
+
+button,
+input,
+select,
+textarea {
+    font-size: var(--font-size-body);
+}
+
+nav {
+    box-shadow: 0 5px 10px #0000001e;
+    padding: 24px 32px;
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    a {
+        svg {
+            font-size: 24px;
+            color: #fff;
+        }
+    }
+    h1 {
+        color: #fff;
+        font-weight: 500;
+        font-size: 22px;
+    }
+    >svg {
+        font-size: 32px;
+        margin-left: auto;
+        background-color: #fff;
+        border-radius: 8px;
+        padding: 8px;
+        cursor: pointer;
+
+        &:hover {
+            background-color: #e7e5ff;
+        }
+    }
+}
+
+.main-nav {
+    h1 {
+        color: #fff;
+        font-weight: 500;
+        font-size: 20px;
+    }
+}
+
+section {
+    >div {
+        padding: var(--space-page);
+        h2 {
+            color: #364163;
+            font-weight: 500;
+        }
+    }
+}
+
+.boxShadow {
+    box-shadow: 0 5px 10px #0000001e;
+}
+
+.bgColorVerde {
+    background-color: #00C950;
+}
+.bgColorNaranja {
+    background-color: #FF6900;
+}
+.bgColorVioleta {
+    background-color: #AD46FF;
+}
+.bgColorAzul {
+    background-color: #2B7FFF;
+}
+
+.animClick {
+    transition: .2s;
+    cursor: pointer;
+    &:active {
+        transform: scale(.95);
+    }
+}
+
+.bdRadius {
+    border-radius: 16px;
+}
+
+a {
+    text-decoration: none;
+}
+
+* {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+    position: relative;
+}

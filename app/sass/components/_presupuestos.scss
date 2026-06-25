@@ -1,0 +1,481 @@
+#presupuestosContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: var(--space-page);
+}
+
+.presupuestoForm {
+    border: 2px solid #D8B4FE;
+    border-radius: var(--radius-card);
+    background-color: #FAF5FF;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: var(--space-card);
+
+    label {
+        color: #3B0764;
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    select,
+    input {
+        width: 100%;
+        min-height: var(--control-height);
+        border: 2px solid #C084FC;
+        border-radius: var(--radius-control);
+        background-color: #FAF5FF;
+        color: #0F172A;
+        font-size: 16px;
+        outline: none;
+        padding: 0 16px;
+
+        &:focus {
+            border-color: #9810FA;
+            box-shadow: 0 0 0 3px #9810FA1A;
+        }
+    }
+}
+
+.presupuestoFormHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    h2 {
+        color: #581C87;
+        font-size: 18px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    button {
+        border: 0;
+        background-color: transparent;
+        color: #9810FA;
+        cursor: pointer;
+        display: flex;
+        padding: 4px;
+    }
+}
+
+.presupuestoCrearClienteBtn {
+    min-height: var(--control-height);
+    border: 2px dashed #D8B4FE;
+    border-radius: var(--radius-control);
+    background-color: #FAF5FF;
+    color: #9810FA;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.presupuestoNuevoCliente {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 8px;
+
+    button {
+        min-height: var(--control-height);
+        border: 0;
+        border-radius: var(--radius-control);
+        background-color: #9810FA;
+        color: #fff;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 0 12px;
+    }
+}
+
+.presupuestoSeparador {
+    height: 1px;
+    background-color: #E9D5FF;
+}
+
+.presupuestoProductoConfig {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    >button {
+        width: 100%;
+        min-height: var(--control-height);
+        border: 0;
+        border-radius: var(--radius-control);
+        background-color: #9810FA;
+        color: #fff;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 0 12px;
+
+        &:disabled {
+            background-color: #A1A1AA;
+            cursor: not-allowed;
+        }
+    }
+}
+
+.presupuestoPrecioGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+
+    button {
+        min-height: var(--control-height);
+        border: 2px solid #D8B4FE;
+        border-radius: var(--radius-control);
+        background-color: #fff;
+        color: #0F172A;
+        cursor: pointer;
+        font-size: 15px;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 12px;
+        text-align: center;
+    }
+
+    .presupuestoPrecioActivo {
+        border-color: #9810FA;
+        background-color: #9810FA;
+        color: #fff;
+    }
+}
+
+.presupuestoItemsForm {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    div {
+        border-radius: 8px;
+        background-color: #fff;
+        display: grid;
+        grid-template-columns: 1fr auto auto;
+        align-items: center;
+        gap: 8px;
+        padding: 10px;
+
+        span,
+        strong {
+            color: #0F172A;
+            font-size: 14px;
+        }
+
+        button {
+            border: 0;
+            background-color: transparent;
+            color: #DC2626;
+            cursor: pointer;
+            display: flex;
+        }
+    }
+}
+
+.presupuestoFormFooter,
+.presupuestoModalTotal {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    span {
+        color: #364153;
+        font-size: 16px;
+    }
+
+    strong {
+        color: #9810FA;
+        font-size: 24px;
+        font-weight: 500;
+    }
+}
+
+.presupuestoGuardarBtn {
+    min-height: var(--control-height);
+    border: 0;
+    border-radius: var(--radius-control);
+    background-color: #9810FA;
+    color: #fff;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    &:disabled {
+        background-color: #A1A1AA;
+        cursor: not-allowed;
+    }
+}
+
+.presupuestosTitulo {
+    color: #0F172A;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.presupuestosLista {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.presupuestosVacio {
+    color: #64748B;
+    font-size: 16px;
+    text-align: center;
+    padding: 48px 0;
+}
+
+.presupuestoCard {
+    border: 2px solid #D8B4FE;
+    border-radius: var(--radius-card);
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: var(--space-card);
+}
+
+.presupuestoCardHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+
+    h3 {
+        color: #0F172A;
+        font-size: 18px;
+        font-weight: 500;
+        margin-bottom: 4px;
+    }
+
+    span {
+        color: #4A5579;
+        font-size: 14px;
+    }
+
+    strong {
+        color: #9810FA;
+        font-size: 20px;
+        font-weight: 500;
+    }
+}
+
+.presupuestoItems {
+    border-radius: 8px;
+    background-color: #F8FAFC;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+
+    div {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    span,
+    strong {
+        color: #0F172A;
+        font-size: 14px;
+        font-weight: 400;
+    }
+}
+
+.presupuestoAcciones {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr auto;
+    gap: 8px;
+
+    button {
+        min-height: 40px;
+        border: 0;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 0 14px;
+    }
+
+    button:nth-child(1) {
+        background-color: #F3F4F6;
+        color: #111827;
+    }
+
+    button:nth-child(2) {
+        background-color: #F3E8FF;
+        color: #7E22CE;
+    }
+
+    button:nth-child(3) {
+        background-color: #00A63E;
+        color: #fff;
+    }
+
+    button:nth-child(4) {
+        background-color: #FEE2E2;
+        color: #DC2626;
+    }
+}
+
+.presupuestoModalAcciones {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+
+    button {
+        min-height: 40px;
+        border: 0;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 0 14px;
+    }
+
+    button:nth-child(1) {
+        background-color: #F3E8FF;
+        color: #7E22CE;
+    }
+
+    button:nth-child(2) {
+        background-color: #00A63E;
+        color: #fff;
+    }
+
+    button:nth-child(3) {
+        background-color: #FEE2E2;
+        color: #DC2626;
+    }
+}
+
+.presupuestoModal {
+    position: fixed;
+    inset: 0;
+    background-color: #0F172A80;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    z-index: 20;
+}
+
+.presupuestoModalPanel {
+    width: min(100%, 420px);
+    max-height: calc(100vh - 32px);
+    border-radius: 12px;
+    background-color: #fff;
+    box-shadow: 0 18px 40px #0F172A24;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow: auto;
+    padding: 18px;
+
+    h2 {
+        color: #0F172A;
+        font-size: 20px;
+        font-weight: 700;
+    }
+
+    >span {
+        color: #4A5579;
+        font-size: 14px;
+    }
+}
+
+.presupuestoModalCerrar {
+    width: 34px;
+    height: 34px;
+    border: 0;
+    border-radius: 8px;
+    background-color: #F3F4F6;
+    color: #334155;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+}
+
+.presupuestoModalItems {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    div {
+        border-radius: 8px;
+        background-color: #F8FAFC;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 6px 10px;
+        padding: 12px;
+    }
+
+    p {
+        color: #0F172A;
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    span {
+        color: #364153;
+        font-size: 14px;
+    }
+
+    strong {
+        grid-row: 1 / 3;
+        grid-column: 2;
+        color: #0F172A;
+        font-size: 14px;
+        font-weight: 500;
+    }
+}
+
+@media (max-width: 620px) {
+    .presupuestoNuevoCliente,
+    .presupuestoAcciones,
+    .presupuestoModalAcciones {
+        grid-template-columns: 1fr;
+    }
+
+    .presupuestoPrecioGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .presupuestoCardHeader {
+        flex-direction: column;
+    }
+}

@@ -1,0 +1,343 @@
+#stockContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: var(--space-page);
+}
+
+.stockTabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+
+    button {
+        border: 0;
+        border-radius: 8px;
+        background-color: #F3F4F6;
+        color: #0F172A;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 700;
+        padding: 16px;
+    }
+
+    .stockTabActiva {
+        color: #fff;
+    }
+
+    .stockTabVioleta {
+        background-color: #9810FA;
+    }
+
+    .stockTabAzul {
+        background-color: #155DFC;
+    }
+}
+
+.stockLista {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.stockCrearProducto {
+    background-color: #FAF5FF;
+    border: 2px solid #E9D5FF;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 12px 16px 16px;
+
+    h2 {
+        color: #6A00B9;
+        font-size: 20px;
+        font-weight: 700;
+    }
+
+    form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+
+        label {
+            color: #1E293B;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        input,
+        select {
+            width: 100%;
+            height: 52px;
+            border: 2px solid #D8B4FE;
+            border-radius: 9px;
+            background-color: #FAF5FF;
+            color: #020617;
+            font-size: 16px;
+            outline: none;
+            padding: 0 12px;
+
+            &:focus {
+                border-color: #9810FA;
+            }
+        }
+    }
+}
+
+.stockCrearCategoriaBtn {
+    width: 100%;
+    min-height: 52px;
+    border: 2px dashed #D8B4FE;
+    border-radius: 9px;
+    background-color: transparent;
+    color: #9810FA;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.stockNuevaCategoria {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+
+    button {
+        align-items: center;
+        background-color: transparent;
+        border: 2px solid #D8B4FE;
+        border-radius: 9px;
+        color: #64748B;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        padding: 0 16px;
+
+        svg {
+            font-size: 18px;
+        }
+    }
+}
+
+.stockCrearProductoGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+
+    div {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+}
+
+.stockDisponibleCheck {
+    align-items: center;
+    border: 2px solid #D8B4FE;
+    border-radius: 9px;
+    display: flex;
+    gap: 8px;
+    min-height: 52px;
+    padding: 0 12px;
+
+    input {
+        accent-color: #9810FA;
+        height: 20px !important;
+        width: 20px !important;
+    }
+}
+
+.stockCrearProductoActions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 2px;
+
+    button {
+        align-items: center;
+        border: 0;
+        border-radius: 9px;
+        color: #fff;
+        cursor: pointer;
+        display: flex;
+        font-size: 16px;
+        font-weight: 700;
+        gap: 10px;
+        justify-content: center;
+        padding: 16px;
+
+        &:first-child {
+            background-color: #9810FA;
+        }
+
+        &:last-child {
+            background-color: #ED0007;
+        }
+
+        svg {
+            font-size: 16px;
+        }
+    }
+}
+
+.stockGrupo {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+
+    h2 {
+        align-items: center;
+        color: #1E293B;
+        display: flex;
+        font-size: 20px;
+        gap: 8px;
+        margin-top: 2px;
+
+        svg {
+            color: #9810FA;
+            font-size: 20px;
+        }
+    }
+}
+
+.stockCard {
+    position: relative;
+
+    p {
+        color: #020617;
+        font-size: 20px;
+    }
+
+    span {
+        color: #334155;
+        font-size: 14px;
+    }
+}
+
+.stockCardDeshidratado {
+    background-color: #FAF5FF;
+    border: 2px solid #E9D5FF;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 20px 16px 16px;
+}
+
+.stockCardHeader {
+    align-items: flex-start;
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+
+    >div:first-child {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+
+        p {
+            align-items: center;
+            display: flex;
+            gap: 8px;
+
+            svg {
+                color: #00A63E;
+                font-size: 14px;
+            }
+        }
+    }
+}
+
+.stockActions {
+    display: flex;
+    gap: 22px;
+    padding-top: 6px;
+
+    button {
+        background-color: transparent;
+        border: 0;
+        cursor: pointer;
+        display: flex;
+        padding: 0;
+
+        &:first-child {
+            color: #9810FA;
+        }
+
+        &:last-child {
+            color: red;
+        }
+    }
+
+    svg {
+        font-size: 18px;
+    }
+}
+
+.stockPrecios {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+
+    div {
+        background-color: #fff;
+        border-radius: 8px;
+        padding: 12px 10px;
+
+        p {
+            color: #64748B;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        span {
+            color: #020617;
+            font-size: 14px;
+        }
+    }
+}
+
+.stockCardFresco {
+    align-items: center;
+    background-color: #EFF6FF;
+    border: 2px solid #93C5FD;
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 20px 16px;
+
+    >div {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    button {
+        background-color: transparent;
+        border: 0;
+        color: #155DFC;
+        cursor: pointer;
+        display: flex;
+        padding: 0;
+
+        svg {
+            font-size: 22px;
+        }
+    }
+}
+
+.stockVacio {
+    color: #99A1B7;
+    font-size: 16px;
+    padding: 48px 0;
+    text-align: center;
+}
+
+@media (max-width: 640px) {
+    .stockCrearProductoGrid,
+    .stockCrearProductoActions {
+        grid-template-columns: 1fr;
+    }
+
+    .stockPrecios {
+        grid-template-columns: 1fr;
+    }
+}

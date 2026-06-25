@@ -1,0 +1,567 @@
+#ventaContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: var(--space-page);
+}
+
+.ventaCampo {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    label {
+        color: #0F172A;
+        font-size: 16px;
+        font-weight: 500;
+    }
+
+    select {
+        width: 100%;
+        height: 62px;
+        border: 2px solid #D1D5DC;
+        border-radius: 14px;
+        background-color: #fff;
+        color: #020617;
+        font-size: 18px;
+        outline: none;
+        padding: 0 20px;
+
+        &:focus {
+            border-color: #00C950;
+        }
+    }
+}
+
+.ventaCrearClienteBtn {
+    width: 100%;
+    min-height: 52px;
+    border: 2px dashed #86EFAC;
+    border-radius: 12px;
+    background-color: #fff;
+    color: #00A63E;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+
+    svg {
+        font-size: 18px;
+    }
+}
+
+.ventaCrearCliente,
+.ventaAgregarProducto {
+    width: 100%;
+    border: 2px solid #86EFAC;
+    border-radius: 14px;
+    background-color: #F0FDF4;
+    padding: 16px;
+}
+
+.ventaCrearCliente {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    >div {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        p {
+            color: #0F172A;
+            font-weight: 500;
+        }
+
+        button {
+            border: 0;
+            background-color: transparent;
+            color: #64748B;
+            cursor: pointer;
+            display: flex;
+            padding: 0;
+
+            svg {
+                font-size: 18px;
+            }
+        }
+    }
+
+    form {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+
+        input {
+            width: 100%;
+            height: 52px;
+            border: 2px solid #4ADE80;
+            border-radius: 9px;
+            background-color: #F0FDF4;
+            color: #0F172A;
+            font-size: 16px;
+            outline: none;
+            padding: 0 12px;
+
+            &:focus {
+                border-color: #00C950;
+            }
+        }
+
+        button {
+            width: 100%;
+            border: 0;
+            border-radius: 8px;
+            background-color: #00A63E;
+            color: #fff;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 16px;
+
+            svg {
+                font-size: 16px;
+            }
+        }
+    }
+}
+
+.ventaAgregarProducto {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    h2 {
+        color: #0F172A;
+        font-size: 20px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+        svg {
+            font-size: 20px;
+        }
+    }
+
+    label {
+        color: #0F172A;
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    select,
+    input {
+        width: 100%;
+        height: 52px;
+        border: 2px solid #4ADE80;
+        border-radius: 9px;
+        background-color: #F0FDF4;
+        color: #020617;
+        font-size: 16px;
+        outline: none;
+        padding: 0 16px;
+
+        &:focus {
+            border-color: #00C950;
+        }
+    }
+}
+
+.ventaPrecioGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+
+    button {
+        min-height: 72px;
+        border: 2px solid #D1D5DC;
+        border-radius: 9px;
+        background-color: #fff;
+        color: #0F172A;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 700;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+
+        span {
+            font-size: 14px;
+        }
+    }
+
+    .ventaPrecioActivo {
+        border-color: #00A63E;
+        background-color: #00A63E;
+        color: #fff;
+    }
+}
+
+.ventaSubtotal {
+    border: 2px solid #4ADE80;
+    border-radius: 9px;
+    background-color: #fff;
+    padding: 14px;
+
+    p {
+        color: #4A5579;
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+
+    span {
+        color: #00A63E;
+        font-size: 24px;
+    }
+}
+
+.ventaStockDisponible {
+    color: #4A5579;
+    font-size: 14px;
+    margin-top: -6px;
+}
+
+.ventaAgregarCarritoBtn,
+.ventaGenerarBtn {
+    width: 100%;
+    border: 0;
+    border-radius: 9px;
+    background-color: #00A63E;
+    color: #fff;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 16px;
+
+    svg {
+        font-size: 18px;
+    }
+
+    &:disabled {
+        background-color: #94A3B8;
+        cursor: not-allowed;
+    }
+}
+
+.ventaCarritoVacio {
+    color: #99A1B7;
+    font-size: 16px;
+    text-align: center;
+    padding: 54px 0;
+}
+
+.ventaCarritoTitulo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+
+    svg {
+        color: #0F172A;
+        font-size: 22px;
+    }
+
+    h2 {
+        color: #0F172A;
+        font-size: 20px;
+        font-weight: 700;
+    }
+}
+
+.ventaCarritoLista {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.ventaCarritoItem {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    border: 2px solid #E5E7EB;
+    border-radius: 14px;
+    background-color: #F8FAFC;
+    padding: 16px 12px;
+
+    div {
+        p {
+            color: #0F172A;
+            margin-bottom: 4px;
+        }
+
+        span {
+            color: #0F172A;
+            font-size: 14px;
+        }
+    }
+
+    button {
+        border: 0;
+        background-color: transparent;
+        color: #ED0007;
+        cursor: pointer;
+        display: flex;
+        padding: 4px;
+
+        svg {
+            font-size: 14px;
+        }
+    }
+
+    strong {
+        grid-column: 1 / -1;
+        color: #0F172A;
+        font-size: 18px;
+        font-weight: 400;
+        text-align: right;
+    }
+}
+
+.ventaTotal {
+    border: 2px solid #DDD6FF;
+    border-radius: 14px;
+    background-color: #F5F3FF;
+    padding: 20px 16px;
+
+    p {
+        color: #364163;
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+
+    span {
+        color: #7F22FE;
+        font-size: 26px;
+    }
+}
+
+.ventaDocumento {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    label {
+        color: #0F172A;
+        font-size: 16px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    select {
+        width: 100%;
+        height: 62px;
+        border: 2px solid #D1D5DC;
+        border-radius: 14px;
+        background-color: #fff;
+        color: #020617;
+        font-size: 18px;
+        outline: none;
+        padding: 0 20px;
+
+        &:focus {
+            border-color: #00C950;
+        }
+    }
+}
+
+.ventaGenerarBtn {
+    box-shadow: 0 5px 10px #0000001e;
+    font-size: 18px;
+}
+
+.ventaComprobantePage {
+    min-height: 100vh;
+    background-color: #F0FDF4;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 48px 16px;
+
+    >h1 {
+        color: #020617;
+        font-size: 22px;
+        font-weight: 700;
+        text-align: center;
+    }
+
+    >p {
+        color: #364163;
+        font-size: 14px;
+        text-align: center;
+    }
+}
+
+.ventaComprobanteIcono {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background-color: #DCFCE7;
+    color: #00A63E;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+
+    svg {
+        font-size: 42px;
+    }
+}
+
+.ventaComprobanteCard {
+    width: min(100%, 360px);
+    border-radius: 12px;
+    background-color: #fff;
+    box-shadow: 0 10px 24px #00000018;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-top: 18px;
+    padding: 24px 20px;
+}
+
+.ventaComprobanteMarca {
+    border-bottom: 1px dashed #CBD5E1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding-bottom: 18px;
+
+    h2 {
+        color: #7F22FE;
+        font-size: 22px;
+        font-weight: 700;
+    }
+
+    p,
+    span {
+        color: #364163;
+        font-size: 14px;
+    }
+}
+
+.ventaComprobanteCliente {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    span {
+        color: #364163;
+        font-size: 14px;
+    }
+
+    strong {
+        color: #020617;
+        font-size: 15px;
+        font-weight: 600;
+    }
+}
+
+.ventaComprobanteItems {
+    border-bottom: 1px dashed #CBD5E1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-bottom: 12px;
+}
+
+.ventaComprobanteItem {
+    border-radius: 8px;
+    background-color: #F8FAFC;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    padding: 14px 10px;
+
+    p {
+        color: #020617;
+        font-size: 14px;
+        margin-bottom: 6px;
+    }
+
+    span {
+        color: #364163;
+        font-size: 14px;
+    }
+
+    strong {
+        color: #020617;
+        font-size: 14px;
+        font-weight: 500;
+    }
+}
+
+.ventaComprobanteTotal {
+    border-bottom: 1px solid #E5E7EB;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 20px;
+
+    span {
+        color: #364163;
+        font-size: 14px;
+    }
+
+    strong {
+        color: #00A63E;
+        font-size: 26px;
+        font-weight: 500;
+    }
+}
+
+.ventaComprobanteGracias {
+    color: #364163;
+    font-size: 14px;
+    font-style: italic;
+    text-align: center;
+}
+
+.ventaComprobanteAcciones {
+    width: min(100%, 360px);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 8px;
+
+    button,
+    a {
+        width: 100%;
+        min-height: 52px;
+        border: 0;
+        border-radius: 10px;
+        background-color: #7F22FE;
+        color: #fff;
+        cursor: pointer;
+        font-size: 15px;
+        font-weight: 700;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        box-shadow: 0 10px 18px #0000001f;
+    }
+
+    button {
+        background-color: #00A63E;
+    }
+}
