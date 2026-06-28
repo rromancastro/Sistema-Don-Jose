@@ -381,6 +381,81 @@
     }
 }
 
+.ventaPago {
+    border: 2px solid #86EFAC;
+    border-radius: 14px;
+    background-color: #F0FDF4;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px;
+
+    label {
+        color: #0F172A;
+        font-size: 16px;
+        font-weight: 500;
+    }
+
+    select,
+    input {
+        width: 100%;
+        height: 52px;
+        border: 2px solid #4ADE80;
+        border-radius: 9px;
+        background-color: #F0FDF4;
+        color: #020617;
+        font-size: 16px;
+        outline: none;
+        padding: 0 16px;
+
+        &:focus {
+            border-color: #00C950;
+        }
+    }
+}
+
+.ventaPagoEstado {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+
+    button {
+        min-height: 52px;
+        border: 2px solid #D1D5DC;
+        border-radius: 9px;
+        background-color: #fff;
+        color: #0F172A;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    .ventaPagoActivo {
+        border-color: #00A63E;
+        background-color: #00A63E;
+        color: #fff;
+    }
+}
+
+.ventaDeuda {
+    border: 2px solid #FCA5A5;
+    border-radius: 9px;
+    background-color: #FEF2F2;
+    padding: 14px;
+
+    p {
+        color: #991B1B;
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+
+    span {
+        color: #DC2626;
+        font-size: 24px;
+        font-weight: 700;
+    }
+}
+
 .ventaGenerarBtn {
     box-shadow: 0 5px 10px #0000001e;
     font-size: 18px;
@@ -525,6 +600,26 @@
         color: #00A63E;
         font-size: 26px;
         font-weight: 500;
+    }
+}
+
+.ventaComprobantePago {
+    border-bottom: 1px solid #E5E7EB;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-bottom: 18px;
+
+    span,
+    p {
+        color: #364163;
+        font-size: 14px;
+    }
+
+    strong {
+        color: #020617;
+        font-size: 15px;
+        font-weight: 600;
     }
 }
 

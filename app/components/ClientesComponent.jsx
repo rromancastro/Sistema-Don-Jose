@@ -16,20 +16,29 @@ const clienteVacio = {
 }
 
 const formatearDinero = (valor) => `$${Number(valor || 0).toLocaleString("es-AR")}`
+const formatearMetodoPago = (metodo) => metodo === "transferencia" ? "Transferencia" : "Efectivo"
+const formatearEstadoPago = (estado) => estado === "incompleto" ? "Incompleto" : "Completo"
 
 export const ClientesComponent = () => {
     const [clientes, setClientes] = useState([])
+    const [comprobantesVenta, setComprobantesVenta] = useState([])
     const [busqueda, setBusqueda] = useState("")
     const [creandoCliente, setCreandoCliente] = useState(false)
     const [clienteEditandoId, setClienteEditandoId] = useState(null)
     const [clienteConfirmandoId, setClienteConfirmandoId] = useState(null)
+    const [clienteAbiertoId, setClienteAbiertoId] = useState(null)
     const [nuevoCliente, setNuevoCliente] = useState(clienteVacio)
     const [clienteEditado, setClienteEditado] = useState(clienteVacio)
 
     useEffect(() => {
         const cargarClientes = async () => {
-            const data = await obtenerDocumentos("clientes")
-            setClientes(data)
+            const [clientesData, comprobantesData] = await Promise.all([
+                obtenerDocumentos("clientes"),
+                obtenerDocumentos("comprobantes_venta"),
+            ])
+
+            setClientes(clientesData)
+            setComprobantesVenta(comprobantesData)
         }
 
         cargarClientes()
@@ -68,6 +77,7 @@ export const ClientesComponent = () => {
             ventas: 0,
             facturacion: 0,
             ganancia: 0,
+            deuda: 0,
         }
 
         const id = await crearDocumento("clientes", clienteParaCrear)
@@ -87,6 +97,7 @@ export const ClientesComponent = () => {
         setCreandoCliente(false)
         setClienteEditandoId(cliente.id)
         setClienteConfirmandoId(null)
+        setClienteAbiertoId(null)
         setClienteEditado({
             nombre: cliente.nombre || "",
             telefono: cliente.telefono || cliente.contacto || "",
@@ -128,6 +139,67 @@ export const ClientesComponent = () => {
         if (clienteEditandoId === cliente.id) {
             cancelarEdicion()
         }
+    }
+
+    const obtenerVentasCliente = (clienteId) => {
+        return comprobantesVenta
+            .filter((comprobante) => comprobante.cliente?.id === clienteId || comprobante.cliente_id === clienteId)
+            .sort((a, b) => String(b.fecha_hora || "").localeCompare(String(a.fecha_hora || "")))
+    }
+
+    const alternarCliente = (clienteId) => {
+        setClienteAbiertoId((clienteActual) => clienteActual === clienteId ? null : clienteId)
+    }
+
+    const completarPago = async (cliente, venta) => {
+        const deudaVenta = Number(venta.monto_debe || venta.pago?.monto_debe || 0)
+
+        if (deudaVenta <= 0) return
+
+        const pagoActualizado = {
+            ...(venta.pago || {}),
+            estado: "completo",
+            estado_label: "Completo",
+            metodo: venta.metodo_pago || venta.pago?.metodo || "efectivo",
+            metodo_label: formatearMetodoPago(venta.metodo_pago || venta.pago?.metodo),
+            monto_debe: 0,
+            monto_pagado: Number(venta.total || 0),
+            total: Number(venta.total || 0),
+        }
+        const ventaActualizada = {
+            estado_pago: "completo",
+            monto_debe: 0,
+            monto_pagado: Number(venta.total || 0),
+            pago: pagoActualizado,
+        }
+        const deudaClienteActualizada = Math.max(Number(cliente.deuda || 0) - deudaVenta, 0)
+
+        await actualizarDocumento("comprobantes_venta", venta.id, ventaActualizada)
+
+        if (Array.isArray(venta.venta_ids) && venta.venta_ids.length > 0) {
+            await Promise.all(venta.venta_ids.map((ventaId) => actualizarDocumento("ventas", ventaId, ventaActualizada)))
+        }
+
+        await actualizarDocumento("clientes", cliente.id, {
+            deuda: deudaClienteActualizada,
+        })
+
+        setComprobantesVenta((comprobantesActuales) => comprobantesActuales.map((comprobante) => {
+            if (comprobante.id !== venta.id) return comprobante
+
+            return {
+                ...comprobante,
+                ...ventaActualizada,
+            }
+        }))
+        setClientes((clientesActuales) => clientesActuales.map((clienteActual) => {
+            if (clienteActual.id !== cliente.id) return clienteActual
+
+            return {
+                ...clienteActual,
+                deuda: deudaClienteActualizada,
+            }
+        }))
     }
 
     return <section>
@@ -204,8 +276,19 @@ export const ClientesComponent = () => {
             }
 
             {
-                clientesFiltrados.map((cliente) => (
-                    <article key={cliente.id} className={`clienteCard bdRadius ${clienteEditandoId === cliente.id ? "clienteCardEditando" : ""} ${clienteConfirmandoId === cliente.id ? "clienteCardConfirmando" : ""}`}>
+                clientesFiltrados.map((cliente) => {
+                    const ventasCliente = obtenerVentasCliente(cliente.id)
+                    const clienteAbierto = clienteAbiertoId === cliente.id
+
+                    return <article
+                        key={cliente.id}
+                        className={`clienteCard bdRadius ${clienteEditandoId === cliente.id ? "clienteCardEditando" : ""} ${clienteConfirmandoId === cliente.id ? "clienteCardConfirmando" : ""} ${clienteAbierto ? "clienteCardAbierta" : ""}`}
+                        onClick={() => {
+                            if (clienteEditandoId === cliente.id || clienteConfirmandoId === cliente.id) return
+
+                            alternarCliente(cliente.id)
+                        }}
+                    >
                         {
                             clienteEditandoId === cliente.id ? (
                                 <form className="clienteEditForm" onSubmit={(e) => {
@@ -272,20 +355,66 @@ export const ClientesComponent = () => {
                                         <p>Ventas <span>{Number(cliente.ventas || 0)}</span></p>
                                         <p>Facturacion <span>{formatearDinero(cliente.facturacion)}</span></p>
                                         <p>Ganancia <span>{formatearDinero(cliente.ganancia)}</span></p>
+                                        <p>Deuda <span className="clienteDeudaNumero">{formatearDinero(cliente.deuda)}</span></p>
                                     </div>
                                     <div className="clienteActions">
-                                        <button type="button" onClick={() => editarCliente(cliente)} aria-label={`Editar ${cliente.nombre}`}>
+                                        <button type="button" onClick={(e) => {
+                                            e.stopPropagation()
+                                            editarCliente(cliente)
+                                        }} aria-label={`Editar ${cliente.nombre}`}>
                                             <GoPencil />
                                         </button>
-                                        <button type="button" onClick={() => setClienteConfirmandoId(cliente.id)} aria-label={`Eliminar ${cliente.nombre}`}>
+                                        <button type="button" onClick={(e) => {
+                                            e.stopPropagation()
+                                            setClienteConfirmandoId(cliente.id)
+                                        }} aria-label={`Eliminar ${cliente.nombre}`}>
                                             <GoTrash />
                                         </button>
                                     </div>
+                                    {
+                                        clienteAbierto && (
+                                            <div className="clienteVentas">
+                                                <h3>Ventas del cliente</h3>
+                                                {
+                                                    ventasCliente.length === 0 ? (
+                                                        <p className="clienteVentasVacio">No hay ventas registradas</p>
+                                                    ) : (
+                                                        ventasCliente.map((venta) => (
+                                                            <article key={venta.id} className="clienteVentaItem">
+                                                                <div>
+                                                                    <p>{venta.fecha_hora || venta.fecha}</p>
+                                                                    <span>{venta.items?.length || 0} {Number(venta.items?.length || 0) === 1 ? "producto" : "productos"}</span>
+                                                                </div>
+                                                                <div>
+                                                                    <strong>{formatearDinero(venta.total)}</strong>
+                                                                    <span>{formatearMetodoPago(venta.metodo_pago)} - {formatearEstadoPago(venta.estado_pago)}</span>
+                                                                    {
+                                                                        venta.estado_pago === "incompleto" && (
+                                                                            <>
+                                                                                <span className="clienteVentaDeuda">Falta pagar {formatearDinero(venta.monto_debe)}</span>
+                                                                                <button type="button" onClick={(e) => {
+                                                                                    e.stopPropagation()
+                                                                                    completarPago(cliente, venta)
+                                                                                }}>
+                                                                                    <FaCheck />
+                                                                                    Completar pago
+                                                                                </button>
+                                                                            </>
+                                                                        )
+                                                                    }
+                                                                </div>
+                                                            </article>
+                                                        ))
+                                                    )
+                                                }
+                                            </div>
+                                        )
+                                    }
                                 </>
                             )
                         }
                     </article>
-                ))
+                })
             }
         </div>
     </section>

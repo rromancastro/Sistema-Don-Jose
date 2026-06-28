@@ -23,6 +23,22 @@
     }
 }
 
+.mainHoyContainer {
+    >div.mainHoyGrid {
+        display: grid;
+        grid-template-columns: minmax(180px, .55fr) minmax(280px, 1fr) minmax(280px, 1fr);
+        gap: 16px;
+        align-items: stretch;
+    }
+}
+
+.mainHoyStats {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    width: 100%;
+}
+
 .mainInfoCard {
     display: flex;
     flex-direction: column;
@@ -52,6 +68,426 @@
         &:nth-child(3) {
             color: #000;
             font-size: 28px;
+        }
+    }
+}
+
+.mainCalendario {
+    border: 1px solid #EDE9FE;
+    border-radius: 16px;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+    overflow: hidden;
+    min-width: fit-content;
+}
+
+.mainCalendarioHeader {
+    align-items: center;
+    border-bottom: 1px solid #F1F5F9;
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 14px 8px;
+
+    p {
+        color: #0F172A;
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    button {
+        align-items: center;
+        border: 0;
+        border-radius: 8px;
+        background-color: transparent;
+        color: #64748B;
+        cursor: pointer;
+        display: flex;
+        height: 34px;
+        justify-content: center;
+        width: 34px;
+
+        &:hover {
+            background-color: #F5F3FF;
+            color: #7F22FE;
+        }
+    }
+}
+
+.mainCalendarioGrid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    padding: 10px 14px 12px;
+}
+
+.mainCalendarioDiaSemana,
+.mainCalendarioVacio {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    min-height: 26px;
+}
+
+.mainCalendarioDiaSemana {
+    color: #94A3B8;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.mainCalendarioGrid button {
+    align-items: center;
+    border: 0;
+    border-radius: 999px;
+    background-color: transparent;
+    color: #0F172A;
+    cursor: pointer;
+    display: flex;
+    font-size: 13px;
+    height: 34px;
+    justify-content: center;
+    margin: 0 auto;
+    width: 34px;
+
+    &:hover {
+        background-color: #F5F3FF;
+    }
+
+    span {
+        position: absolute;
+        right: 6px;
+        top: 6px;
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background-color: #7F22FE;
+    }
+}
+
+.mainCalendarioGrid .mainCalendarioHoy {
+    background-color: #EDE9FE;
+    color: #6D28D9;
+}
+
+.mainCalendarioGrid .mainCalendarioActivo {
+    background-color: #7F22FE;
+    color: #fff;
+
+    span {
+        background-color: #fff;
+    }
+}
+
+.mainRecordatorios {
+    border-top: 1px solid #F1F5F9;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 14px 14px;
+
+    >div {
+        align-items: center;
+        display: flex;
+        justify-content: space-between;
+
+        span {
+            align-items: center;
+            color: #64748B;
+            display: flex;
+            font-size: 13px;
+            gap: 6px;
+
+            svg {
+                color: #7F22FE;
+                font-size: 14px;
+            }
+        }
+
+        button {
+            align-items: center;
+            border: 0;
+            border-radius: 999px;
+            background-color: #7F22FE;
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            height: 30px;
+            justify-content: center;
+            width: 30px;
+        }
+    }
+
+    form {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+
+        input {
+            min-width: 0;
+            height: 40px;
+            border: 1px solid #DDD6FE;
+            border-radius: 8px;
+            color: #0F172A;
+            outline: none;
+            padding: 0 10px;
+
+            &:focus {
+                border-color: #7F22FE;
+            }
+        }
+
+        button {
+            border: 0;
+            border-radius: 8px;
+            background-color: #7F22FE;
+            color: #fff;
+            cursor: pointer;
+            font-weight: 700;
+            padding: 0 12px;
+        }
+    }
+
+    >p {
+        color: #94A3B8;
+        font-size: 13px;
+        font-style: italic;
+    }
+
+    ul {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        list-style: none;
+    }
+
+    li {
+        align-items: center;
+        border-left: 3px solid #7F22FE;
+        border-radius: 8px;
+        background-color: #F8FAFC;
+        color: #334155;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+        font-size: 13px;
+        padding: 8px 10px;
+
+        span {
+            min-width: 0;
+        }
+
+        button {
+            align-items: center;
+            border: 0;
+            border-radius: 7px;
+            background-color: transparent;
+            color: #DC2626;
+            cursor: pointer;
+            display: flex;
+            height: 28px;
+            justify-content: center;
+            width: 28px;
+
+            &:hover {
+                background-color: #FEF2F2;
+            }
+        }
+    }
+}
+
+.mainNotas {
+    border: 1px solid #EDE9FE;
+    border-radius: 16px;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 100%;
+    overflow: hidden;
+    padding: 14px;
+    min-width: fit-content;
+}
+
+.mainNotasHeader {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+
+    h3 {
+        color: #0F172A;
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    span {
+        color: #94A3B8;
+        display: block;
+        font-size: 12px;
+        margin-top: 2px;
+    }
+
+    button {
+        align-items: center;
+        border: 0;
+        border-radius: 999px;
+        background-color: #7F22FE;
+        color: #fff;
+        cursor: pointer;
+        display: flex;
+        height: 32px;
+        justify-content: center;
+        width: 32px;
+    }
+}
+
+.mainNotasSearch {
+    align-items: center;
+    border: 1px solid #E2E8F0;
+    border-radius: 9px;
+    display: flex;
+    gap: 8px;
+    min-height: 40px;
+    padding: 0 10px;
+
+    svg {
+        color: #94A3B8;
+        flex-shrink: 0;
+        font-size: 15px;
+    }
+
+    input {
+        border: 0;
+        color: #0F172A;
+        font-size: 14px;
+        height: 100%;
+        min-width: 0;
+        outline: none;
+        width: 100%;
+    }
+}
+
+.mainNotaForm {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    input,
+    textarea {
+        width: 100%;
+        border: 1px solid #DDD6FE;
+        border-radius: 8px;
+        color: #0F172A;
+        font-size: 14px;
+        outline: none;
+        padding: 10px;
+
+        &:focus {
+            border-color: #7F22FE;
+        }
+    }
+
+    textarea {
+        min-height: 74px;
+        resize: vertical;
+    }
+
+    div {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    button {
+        border: 0;
+        border-radius: 8px;
+        color: #fff;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 700;
+        padding: 10px;
+
+        &:first-child {
+            background-color: #7F22FE;
+        }
+
+        &:last-child {
+            background-color: #64748B;
+        }
+    }
+}
+
+.mainNotasLista {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow: auto;
+
+    >p {
+        color: #94A3B8;
+        font-size: 13px;
+        font-style: italic;
+        padding: 8px 0;
+    }
+}
+
+.mainNotaItem {
+    border: 1px solid #E2E8F0;
+    border-left: 3px solid #7F22FE;
+    border-radius: 10px;
+    background-color: #F8FAFC;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    padding: 10px;
+
+    h4 {
+        color: #0F172A;
+        font-size: 14px;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+
+    p {
+        color: #475569;
+        font-size: 13px;
+        line-height: 1.35;
+    }
+
+    .mainNotaForm {
+        grid-column: 1 / -1;
+    }
+}
+
+.mainNotaActions {
+    display: flex;
+    gap: 6px;
+
+    button {
+        align-items: center;
+        border: 0;
+        border-radius: 7px;
+        background-color: transparent;
+        cursor: pointer;
+        display: flex;
+        height: 28px;
+        justify-content: center;
+        width: 28px;
+
+        &:first-child {
+            color: #7F22FE;
+
+            &:hover {
+                background-color: #F5F3FF;
+            }
+        }
+
+        &:last-child {
+            color: #DC2626;
+
+            &:hover {
+                background-color: #FEF2F2;
+            }
         }
     }
 }
@@ -129,5 +565,25 @@
 
     &:active {
         background-color: #f0f0f0;
+    }
+}
+
+@media (max-width: 920px) {
+    .mainHoyContainer {
+        >div.mainHoyGrid {
+            grid-template-columns: 1fr;
+        }
+    }
+}
+
+@media (max-width: 640px) {
+    #mainInfoCardsContainer {
+        >div {
+            flex-direction: column;
+        }
+    }
+
+    .mainHoyStats {
+        grid-template-columns: 1fr;
     }
 }

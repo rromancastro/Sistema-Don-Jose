@@ -1,0 +1,262 @@
+#transformacionesContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: var(--space-page);
+}
+
+.transformacionCampo {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    label {
+        color: #0F172A;
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    select,
+    input {
+        width: 100%;
+        height: 62px;
+        border: 2px solid #D1D5DC;
+        border-radius: 14px;
+        background-color: #fff;
+        color: #020617;
+        font-size: 18px;
+        outline: none;
+        padding: 0 20px;
+
+        &:focus {
+            border-color: #7F22FE;
+        }
+    }
+}
+
+.transformacionFlecha {
+    align-items: center;
+    background-color: #EDE9FE;
+    border-radius: 999px;
+    color: #7F22FE;
+    display: flex;
+    height: 48px;
+    justify-content: center;
+    margin: 12px auto;
+    width: 48px;
+
+    svg {
+        font-size: 18px;
+    }
+}
+
+.transformacionProductoFinal {
+    border: 2px solid #DDD6FE;
+    border-radius: 14px;
+    background-color: #F5F3FF;
+    padding: 16px;
+
+    label {
+        color: #364163;
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    select {
+        border-color: #DDD6FE;
+        background-color: #F5F3FF;
+        color: #5B21B6;
+    }
+}
+
+.transformacionMetricas {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+
+    article {
+        border: 2px solid #DDD6FE;
+        border-radius: 14px;
+        background-color: #F5F3FF;
+        padding: 18px 16px;
+
+        p {
+            color: #364163;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        span {
+            color: #7F22FE;
+            font-size: 24px;
+            font-weight: 700;
+        }
+    }
+}
+
+.transformacionRegistrarBtn {
+    width: 100%;
+    border: 0;
+    border-radius: 9px;
+    background-color: #7F22FE;
+    box-shadow: 0 5px 10px #0000001e;
+    color: #fff;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 22px;
+
+    svg {
+        font-size: 18px;
+    }
+
+    &:disabled {
+        background-color: #94A3B8;
+        cursor: not-allowed;
+    }
+}
+
+.transformacionesHistorial {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 10px;
+
+    h2 {
+        color: #364163;
+        font-size: 20px;
+        font-weight: 700;
+    }
+}
+
+.transformacionesVacio {
+    color: #99A1B7;
+    font-size: 16px;
+    padding: 34px 0;
+    text-align: center;
+}
+
+.transformacionCard {
+    border: 2px solid #DDD6FE;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 16px;
+}
+
+.transformacionCardHeader {
+    align-items: flex-start;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+
+    p {
+        color: #020617;
+        font-size: 18px;
+        font-weight: 700;
+    }
+
+    span {
+        color: #64748B;
+        display: block;
+        font-size: 14px;
+        margin-top: 4px;
+    }
+
+    strong {
+        border-radius: 999px;
+        font-size: 13px;
+        padding: 6px 10px;
+        white-space: nowrap;
+    }
+}
+
+.estadoPendiente {
+    background-color: #FEF3C7;
+    color: #B45309;
+}
+
+.estadoCompletada {
+    background-color: #DCFCE7;
+    color: #15803D;
+}
+
+.transformacionCardDatos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+
+    span {
+        background-color: #F8FAFC;
+        border-radius: 8px;
+        color: #334155;
+        font-size: 14px;
+        padding: 10px;
+    }
+}
+
+.transformacionPasarStock {
+    border-top: 1px solid #E2E8F0;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    padding-top: 14px;
+
+    label {
+        color: #0F172A;
+        font-size: 14px;
+        font-weight: 700;
+        grid-column: 1 / -1;
+    }
+
+    input {
+        width: 100%;
+        height: 52px;
+        border: 2px solid #D1D5DC;
+        border-radius: 9px;
+        color: #020617;
+        outline: none;
+        padding: 0 12px;
+
+        &:focus {
+            border-color: #7F22FE;
+        }
+    }
+
+    button {
+        align-items: center;
+        border: 0;
+        border-radius: 9px;
+        background-color: #7F22FE;
+        color: #fff;
+        cursor: pointer;
+        display: flex;
+        font-size: 16px;
+        font-weight: 700;
+        gap: 8px;
+        justify-content: center;
+        padding: 0 18px;
+
+        &:disabled {
+            background-color: #94A3B8;
+            cursor: not-allowed;
+        }
+    }
+}
+
+@media (max-width: 640px) {
+    .transformacionMetricas,
+    .transformacionCardDatos,
+    .transformacionPasarStock {
+        grid-template-columns: 1fr;
+    }
+
+    .transformacionCardHeader {
+        flex-direction: column;
+    }
+}

@@ -16,6 +16,8 @@ const obtenerPrecioMinorista = (producto) => Number(producto.precio_minorista ??
 const obtenerCostoProducto = (producto) => Number(producto.costo ?? producto.costo_kg ?? producto.precio_costo ?? 0)
 const formatearPrecio = (valor) => `$${Number(valor || 0).toFixed(2)}`
 const formatearDocumento = (documento) => documento === "factura" ? "Factura" : "Remito"
+const formatearMetodoPago = (metodo) => metodo === "transferencia" ? "Transferencia" : "Efectivo"
+const formatearEstadoPago = (estado) => estado === "incompleto" ? "Incompleto" : "Completo"
 const formatearTipoStock = (tipoStock, cantidad = 1) => {
     if (tipoStock === "unidad") return cantidad === 1 ? "unidad" : "unidades"
 
@@ -51,6 +53,9 @@ export const VentaComponent = () => {
     const [tipoPrecio, setTipoPrecio] = useState("minorista")
     const [carrito, setCarrito] = useState([])
     const [documento, setDocumento] = useState("remito")
+    const [metodoPago, setMetodoPago] = useState("efectivo")
+    const [estadoPago, setEstadoPago] = useState("completo")
+    const [montoPagado, setMontoPagado] = useState("")
     const [comprobanteVenta, setComprobanteVenta] = useState(null)
 
     useEffect(() => {
@@ -95,6 +100,9 @@ export const VentaComponent = () => {
     const ganancia = subtotal - (costoProducto * cantidadNumerica)
     const totalVenta = carrito.reduce((total, item) => total + item.subtotal, 0)
     const totalGanancia = carrito.reduce((total, item) => total + item.ganancia, 0)
+    const montoPagadoNumerico = estadoPago === "completo" ? totalVenta : Number(montoPagado || 0)
+    const montoDebe = estadoPago === "completo" ? 0 : Math.max(totalVenta - montoPagadoNumerico, 0)
+    const pagoValido = estadoPago === "completo" || (montoPagadoNumerico >= 0 && montoPagadoNumerico <= totalVenta)
 
     const abrirCrearCliente = () => {
         setCreandoCliente(true)
@@ -116,6 +124,7 @@ export const VentaComponent = () => {
             ventas: 0,
             facturacion: 0,
             ganancia: 0,
+            deuda: 0,
         }
 
         const id = await crearDocumento("clientes", clienteParaCrear)
@@ -144,6 +153,19 @@ export const VentaComponent = () => {
         const cantidadNormalizada = tipoStockProducto === "unidad" ? Math.floor(nuevaCantidad) : nuevaCantidad
 
         setCantidadKg(String(Math.max(Math.min(cantidadNormalizada, stockDisponible), 0)))
+    }
+
+    const cambiarMontoPagado = (valor) => {
+        if (valor === "") {
+            setMontoPagado("")
+            return
+        }
+
+        const nuevoMonto = Number(valor)
+
+        if (Number.isNaN(nuevoMonto)) return
+
+        setMontoPagado(String(Math.max(Math.min(nuevoMonto, totalVenta), 0)))
     }
 
     const agregarAlCarrito = () => {
@@ -247,6 +269,17 @@ export const VentaComponent = () => {
         pdf.setTextColor(0, 166, 62)
         pdf.text(formatearPrecio(comprobanteVenta.total), anchoPagina - margen, y, { align: "right" })
 
+        y += 10
+        pdf.setFont("helvetica", "normal")
+        pdf.setFontSize(10)
+        pdf.setTextColor(54, 65, 99)
+        pdf.text(`Pago: ${formatearMetodoPago(comprobanteVenta.metodo_pago)} - ${formatearEstadoPago(comprobanteVenta.estado_pago)}`, margen, y)
+
+        if (comprobanteVenta.estado_pago === "incompleto") {
+            y += 6
+            pdf.text(`Pagado: ${formatearPrecio(comprobanteVenta.monto_pagado)} - Debe: ${formatearPrecio(comprobanteVenta.monto_debe)}`, margen, y)
+        }
+
         y += 18
         pdf.setFont("helvetica", "italic")
         pdf.setFontSize(9)
@@ -257,11 +290,20 @@ export const VentaComponent = () => {
     }
 
     const generarVenta = async () => {
-        if (!clienteSeleccionado || carrito.length === 0) return
+        if (!clienteSeleccionado || carrito.length === 0 || !pagoValido) return
 
         const fechaVenta = obtenerFechaActual()
         const fechaHoraVenta = formatearFechaHora(new Date())
         const itemsVenta = carrito.map((item) => ({ ...item }))
+        const pagoVenta = {
+            estado: estadoPago,
+            estado_label: formatearEstadoPago(estadoPago),
+            metodo: metodoPago,
+            metodo_label: formatearMetodoPago(metodoPago),
+            monto_debe: montoDebe,
+            monto_pagado: montoPagadoNumerico,
+            total: totalVenta,
+        }
         const comprobanteParaGuardar = {
             negocio: {
                 nombre: "Don Jose",
@@ -288,6 +330,11 @@ export const VentaComponent = () => {
                 tipo_precio: item.tipo_precio,
                 tipo_stock: item.tipo_stock,
             })),
+            pago: pagoVenta,
+            estado_pago: estadoPago,
+            metodo_pago: metodoPago,
+            monto_debe: montoDebe,
+            monto_pagado: montoPagadoNumerico,
             tipo_documento: documento,
             total: totalVenta,
         }
@@ -306,6 +353,11 @@ export const VentaComponent = () => {
             fecha: fechaVenta,
             fecha_hora: fechaHoraVenta,
             ganancia: item.ganancia,
+            pago: pagoVenta,
+            estado_pago: estadoPago,
+            metodo_pago: metodoPago,
+            monto_debe: montoDebe,
+            monto_pagado: montoPagadoNumerico,
             precio_unitario: item.precio_unitario,
             producto: {
                 id: item.producto_id,
@@ -327,6 +379,7 @@ export const VentaComponent = () => {
         const clienteActualizado = {
             facturacion: Number(clienteSeleccionado.facturacion || 0) + totalVenta,
             ganancia: Number(clienteSeleccionado.ganancia || 0) + totalGanancia,
+            deuda: Number(clienteSeleccionado.deuda || 0) + montoDebe,
             ventas: Number(clienteSeleccionado.ventas || 0) + 1,
         }
 
@@ -351,6 +404,9 @@ export const VentaComponent = () => {
         setCantidadKg("")
         setTipoPrecio("minorista")
         setDocumento("remito")
+        setMetodoPago("efectivo")
+        setEstadoPago("completo")
+        setMontoPagado("")
     }
 
     if (comprobanteVenta) {
@@ -390,6 +446,16 @@ export const VentaComponent = () => {
                 <div className="ventaComprobanteTotal">
                     <span>Total</span>
                     <strong>{formatearPrecio(comprobanteVenta.total)}</strong>
+                </div>
+
+                <div className="ventaComprobantePago">
+                    <span>Pago</span>
+                    <strong>{formatearMetodoPago(comprobanteVenta.metodo_pago)} - {formatearEstadoPago(comprobanteVenta.estado_pago)}</strong>
+                    {
+                        comprobanteVenta.estado_pago === "incompleto" && (
+                            <p>Pagó {formatearPrecio(comprobanteVenta.monto_pagado)} - Debe {formatearPrecio(comprobanteVenta.monto_debe)}</p>
+                        )
+                    }
                 </div>
 
                 <p className="ventaComprobanteGracias">¡Gracias por su compra!</p>
@@ -591,7 +657,56 @@ export const VentaComponent = () => {
                                 <option value="factura">Factura</option>
                             </select>
                         </div>
-                        <button type="button" className="ventaGenerarBtn" onClick={generarVenta}>
+                        <div className="ventaPago">
+                            <label>Método de pago</label>
+                            <select value={metodoPago} onChange={(e) => setMetodoPago(e.target.value)}>
+                                <option value="efectivo">Efectivo</option>
+                                <option value="transferencia">Transferencia</option>
+                            </select>
+
+                            <label>Estado del pago</label>
+                            <div className="ventaPagoEstado">
+                                <button
+                                    type="button"
+                                    className={estadoPago === "completo" ? "ventaPagoActivo" : ""}
+                                    onClick={() => {
+                                        setEstadoPago("completo")
+                                        setMontoPagado("")
+                                    }}
+                                >
+                                    Completo
+                                </button>
+                                <button
+                                    type="button"
+                                    className={estadoPago === "incompleto" ? "ventaPagoActivo" : ""}
+                                    onClick={() => setEstadoPago("incompleto")}
+                                >
+                                    Incompleto
+                                </button>
+                            </div>
+
+                            {
+                                estadoPago === "incompleto" && (
+                                    <>
+                                        <label>Monto que pagó</label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            max={totalVenta}
+                                            step="0.01"
+                                            value={montoPagado}
+                                            onChange={(e) => cambiarMontoPagado(e.target.value)}
+                                            placeholder="0.00"
+                                        />
+                                        <div className="ventaDeuda">
+                                            <p>Monto que debe</p>
+                                            <span>{formatearPrecio(montoDebe)}</span>
+                                        </div>
+                                    </>
+                                )
+                            }
+                        </div>
+                        <button type="button" className="ventaGenerarBtn" onClick={generarVenta} disabled={!pagoValido}>
                             <FaCheck />
                             Generar Venta
                         </button>

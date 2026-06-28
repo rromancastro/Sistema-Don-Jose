@@ -20,6 +20,7 @@ const CATEGORIAS_DESHIDRATADOS = ["Frutas Secas", "Frutas Frescas", "Mix"]
 const obtenerNombreProducto = (producto) => producto.nombre || producto.producto || "Producto sin nombre"
 const obtenerStockProducto = (producto) => Number(producto.stock ?? producto.stock_kg ?? producto.cantidad_kg ?? 0)
 const obtenerTipoStock = (producto) => producto.tipo_stock || "kg"
+const obtenerCostoProducto = (producto) => Number(producto.costo ?? producto.costo_kg ?? producto.precio_costo ?? 0)
 const formatearPrecio = (valor) => `$${Number(valor || 0).toFixed(2)}`
 
 const productoVacio = {
@@ -355,6 +356,10 @@ export const StockComponent = () => {
                                                             <p>Minorista</p>
                                                             <span>{formatearPrecio(producto.precio_minorista)}/{obtenerTipoStock(producto)}</span>
                                                         </div>
+                                                        <div>
+                                                            <p>Costo</p>
+                                                            <span>{formatearPrecio(obtenerCostoProducto(producto))}/{obtenerTipoStock(producto)}</span>
+                                                        </div>
                                                     </div>
                                                 </article>
                                             ))
@@ -375,6 +380,7 @@ export const StockComponent = () => {
                                         <div>
                                             <p>{obtenerNombreProducto(producto)}</p>
                                             <span>Stock: {obtenerStockProducto(producto)} {obtenerTipoStock(producto)}</span>
+                                            <span>Costo: {formatearPrecio(obtenerCostoProducto(producto))}/{obtenerTipoStock(producto)}</span>
                                         </div>
                                         <button type="button" aria-label={`Editar ${obtenerNombreProducto(producto)}`}>
                                             <GoPencil />
