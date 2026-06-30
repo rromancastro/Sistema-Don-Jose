@@ -47,6 +47,8 @@ export const VentaComponent = () => {
     const [nuevoCliente, setNuevoCliente] = useState({
         nombre: "",
         contacto: "",
+        dni_cuit: "",
+        direccion: "",
     })
     const [productoId, setProductoId] = useState("")
     const [cantidadKg, setCantidadKg] = useState("")
@@ -56,6 +58,7 @@ export const VentaComponent = () => {
     const [metodoPago, setMetodoPago] = useState("efectivo")
     const [estadoPago, setEstadoPago] = useState("completo")
     const [montoPagado, setMontoPagado] = useState("")
+    const [observaciones, setObservaciones] = useState("")
     const [comprobanteVenta, setComprobanteVenta] = useState(null)
 
     useEffect(() => {
@@ -103,6 +106,9 @@ export const VentaComponent = () => {
     const montoPagadoNumerico = estadoPago === "completo" ? totalVenta : Number(montoPagado || 0)
     const montoDebe = estadoPago === "completo" ? 0 : Math.max(totalVenta - montoPagadoNumerico, 0)
     const pagoValido = estadoPago === "completo" || (montoPagadoNumerico >= 0 && montoPagadoNumerico <= totalVenta)
+    const dniCuitClienteValido = Boolean((clienteSeleccionado?.dni_cuit || clienteSeleccionado?.dniCuit || "").trim())
+    const direccionClienteValida = Boolean((clienteSeleccionado?.direccion || "").trim())
+    const ventaValida = pagoValido && dniCuitClienteValido && direccionClienteValida
 
     const abrirCrearCliente = () => {
         setCreandoCliente(true)
@@ -113,14 +119,20 @@ export const VentaComponent = () => {
         setNuevoCliente({
             nombre: "",
             contacto: "",
+            dni_cuit: "",
+            direccion: "",
         })
     }
 
     const guardarCliente = async () => {
+        if (!nuevoCliente.nombre.trim() || !nuevoCliente.dni_cuit.trim() || !nuevoCliente.direccion.trim()) return
+
         const clienteParaCrear = {
-            nombre: nuevoCliente.nombre,
-            telefono: nuevoCliente.contacto,
+            nombre: nuevoCliente.nombre.trim(),
+            telefono: nuevoCliente.contacto.trim(),
             email: "",
+            dni_cuit: nuevoCliente.dni_cuit.trim(),
+            direccion: nuevoCliente.direccion.trim(),
             ventas: 0,
             facturacion: 0,
             ganancia: 0,
@@ -234,6 +246,22 @@ export const VentaComponent = () => {
         pdf.setTextColor(15, 23, 42)
         pdf.text(comprobanteVenta.cliente.nombre, margen, y)
 
+        if (comprobanteVenta.cliente.dni_cuit) {
+            y += 7
+            pdf.setFont("helvetica", "normal")
+            pdf.setFontSize(10)
+            pdf.setTextColor(54, 65, 99)
+            pdf.text(`DNI/CUIT: ${comprobanteVenta.cliente.dni_cuit}`, margen, y)
+        }
+
+        if (comprobanteVenta.cliente.direccion) {
+            y += 7
+            pdf.setFont("helvetica", "normal")
+            pdf.setFontSize(10)
+            pdf.setTextColor(54, 65, 99)
+            pdf.text(`Direccion: ${comprobanteVenta.cliente.direccion}`, margen, y)
+        }
+
         y += 14
         comprobanteVenta.items.forEach((item) => {
             if (y > 260) {
@@ -280,6 +308,16 @@ export const VentaComponent = () => {
             pdf.text(`Pagado: ${formatearPrecio(comprobanteVenta.monto_pagado)} - Debe: ${formatearPrecio(comprobanteVenta.monto_debe)}`, margen, y)
         }
 
+        if (comprobanteVenta.observaciones) {
+            y += 10
+            pdf.setFont("helvetica", "normal")
+            pdf.setFontSize(10)
+            pdf.setTextColor(54, 65, 99)
+            pdf.text("Observaciones", margen, y)
+            y += 6
+            pdf.text(pdf.splitTextToSize(comprobanteVenta.observaciones, anchoPagina - margen * 2), margen, y)
+        }
+
         y += 18
         pdf.setFont("helvetica", "italic")
         pdf.setFontSize(9)
@@ -290,7 +328,7 @@ export const VentaComponent = () => {
     }
 
     const generarVenta = async () => {
-        if (!clienteSeleccionado || carrito.length === 0 || !pagoValido) return
+        if (!clienteSeleccionado || carrito.length === 0 || !ventaValida) return
 
         const fechaVenta = obtenerFechaActual()
         const fechaHoraVenta = formatearFechaHora(new Date())
@@ -314,6 +352,8 @@ export const VentaComponent = () => {
                 nombre: clienteSeleccionado.nombre || "",
                 telefono: clienteSeleccionado.telefono || "",
                 email: clienteSeleccionado.email || "",
+                dni_cuit: clienteSeleccionado.dni_cuit || clienteSeleccionado.dniCuit || "",
+                direccion: clienteSeleccionado.direccion || "",
             },
             fecha: fechaVenta,
             fecha_hora: fechaHoraVenta,
@@ -335,6 +375,7 @@ export const VentaComponent = () => {
             metodo_pago: metodoPago,
             monto_debe: montoDebe,
             monto_pagado: montoPagadoNumerico,
+            observaciones: observaciones.trim(),
             tipo_documento: documento,
             total: totalVenta,
         }
@@ -346,6 +387,8 @@ export const VentaComponent = () => {
             cliente: {
                 id: clienteSeleccionado.id,
                 nombre: clienteSeleccionado.nombre || "",
+                dni_cuit: clienteSeleccionado.dni_cuit || clienteSeleccionado.dniCuit || "",
+                direccion: clienteSeleccionado.direccion || "",
             },
             cliente_id: clienteSeleccionado.id,
             comprobante_id: comprobanteId,
@@ -358,6 +401,7 @@ export const VentaComponent = () => {
             metodo_pago: metodoPago,
             monto_debe: montoDebe,
             monto_pagado: montoPagadoNumerico,
+            observaciones: observaciones.trim(),
             precio_unitario: item.precio_unitario,
             producto: {
                 id: item.producto_id,
@@ -407,6 +451,7 @@ export const VentaComponent = () => {
         setMetodoPago("efectivo")
         setEstadoPago("completo")
         setMontoPagado("")
+        setObservaciones("")
     }
 
     if (comprobanteVenta) {
@@ -427,6 +472,16 @@ export const VentaComponent = () => {
                 <div className="ventaComprobanteCliente">
                     <span>Cliente</span>
                     <strong>{comprobanteVenta.cliente.nombre}</strong>
+                    {
+                        comprobanteVenta.cliente.dni_cuit && (
+                            <p>DNI/CUIT: {comprobanteVenta.cliente.dni_cuit}</p>
+                        )
+                    }
+                    {
+                        comprobanteVenta.cliente.direccion && (
+                            <p>Direccion: {comprobanteVenta.cliente.direccion}</p>
+                        )
+                    }
                 </div>
 
                 <div className="ventaComprobanteItems">
@@ -457,6 +512,15 @@ export const VentaComponent = () => {
                         )
                     }
                 </div>
+
+                {
+                    comprobanteVenta.observaciones && (
+                        <div className="ventaComprobanteObservaciones">
+                            <span>Observaciones</span>
+                            <p>{comprobanteVenta.observaciones}</p>
+                        </div>
+                    )
+                }
 
                 <p className="ventaComprobanteGracias">¡Gracias por su compra!</p>
             </article>
@@ -506,6 +570,7 @@ export const VentaComponent = () => {
                                         nombre: e.target.value,
                                     }))}
                                     placeholder="Nombre del cliente"
+                                    required
                                 />
                                 <input
                                     type="text"
@@ -516,7 +581,27 @@ export const VentaComponent = () => {
                                     }))}
                                     placeholder="Contacto (opcional)"
                                 />
-                                <button type="submit">
+                                <input
+                                    type="text"
+                                    value={nuevoCliente.dni_cuit}
+                                    onChange={(e) => setNuevoCliente((clienteActual) => ({
+                                        ...clienteActual,
+                                        dni_cuit: e.target.value,
+                                    }))}
+                                    placeholder="DNI/CUIT"
+                                    required
+                                />
+                                <input
+                                    type="text"
+                                    value={nuevoCliente.direccion}
+                                    onChange={(e) => setNuevoCliente((clienteActual) => ({
+                                        ...clienteActual,
+                                        direccion: e.target.value,
+                                    }))}
+                                    placeholder="Direccion"
+                                    required
+                                />
+                                <button type="submit" disabled={!nuevoCliente.nombre.trim() || !nuevoCliente.dni_cuit.trim() || !nuevoCliente.direccion.trim()}>
                                     <FaCheck />
                                     Guardar Cliente
                                 </button>
@@ -535,6 +620,16 @@ export const VentaComponent = () => {
                                 <FaUserPlus />
                                 Crear Nuevo Cliente
                             </button>
+                            {
+                                clienteSeleccionado && !dniCuitClienteValido && (
+                                    <p className="ventaClienteRequerido">El cliente necesita DNI/CUIT para generar la venta.</p>
+                                )
+                            }
+                            {
+                                clienteSeleccionado && !direccionClienteValida && (
+                                    <p className="ventaClienteRequerido">El cliente necesita direccion para generar la venta.</p>
+                                )
+                            }
                         </>
                     )
                 }
@@ -657,6 +752,15 @@ export const VentaComponent = () => {
                                 <option value="factura">Factura</option>
                             </select>
                         </div>
+                        <div className="ventaObservaciones">
+                            <label>Observaciones</label>
+                            <textarea
+                                value={observaciones}
+                                onChange={(e) => setObservaciones(e.target.value)}
+                                placeholder="Agregar observaciones para el remito..."
+                                rows={4}
+                            />
+                        </div>
                         <div className="ventaPago">
                             <label>Método de pago</label>
                             <select value={metodoPago} onChange={(e) => setMetodoPago(e.target.value)}>
@@ -706,7 +810,7 @@ export const VentaComponent = () => {
                                 )
                             }
                         </div>
-                        <button type="button" className="ventaGenerarBtn" onClick={generarVenta} disabled={!pagoValido}>
+                        <button type="button" className="ventaGenerarBtn" onClick={generarVenta} disabled={!ventaValida}>
                             <FaCheck />
                             Generar Venta
                         </button>

@@ -53,6 +53,12 @@
     }
 }
 
+.ventaClienteRequerido {
+    color: #DC2626;
+    font-size: 14px;
+    font-weight: 700;
+}
+
 .ventaCrearCliente,
 .ventaAgregarProducto {
     width: 100%;
@@ -129,6 +135,11 @@
 
             svg {
                 font-size: 16px;
+            }
+
+            &:disabled {
+                background-color: #94A3B8;
+                cursor: not-allowed;
             }
         }
     }
@@ -381,6 +392,35 @@
     }
 }
 
+.ventaObservaciones {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    label {
+        color: #0F172A;
+        font-size: 16px;
+        font-weight: 500;
+    }
+
+    textarea {
+        width: 100%;
+        min-height: 110px;
+        border: 2px solid #D1D5DC;
+        border-radius: 14px;
+        background-color: #fff;
+        color: #020617;
+        font-size: 16px;
+        outline: none;
+        padding: 14px 16px;
+        resize: vertical;
+
+        &:focus {
+            border-color: #00C950;
+        }
+    }
+}
+
 .ventaPago {
     border: 2px solid #86EFAC;
     border-radius: 14px;
@@ -548,6 +588,11 @@
         font-size: 15px;
         font-weight: 600;
     }
+
+    p {
+        color: #364163;
+        font-size: 14px;
+    }
 }
 
 .ventaComprobanteItems {
@@ -620,6 +665,24 @@
         color: #020617;
         font-size: 15px;
         font-weight: 600;
+    }
+}
+
+.ventaComprobanteObservaciones {
+    border-bottom: 1px solid #E5E7EB;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-bottom: 18px;
+
+    span,
+    p {
+        color: #364163;
+        font-size: 14px;
+    }
+
+    p {
+        line-height: 1.4;
     }
 }
 

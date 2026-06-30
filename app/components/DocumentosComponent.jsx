@@ -106,6 +106,22 @@ const descargarPDF = async (documento) => {
     pdf.setTextColor(15, 23, 42)
     pdf.text(documento.cliente?.nombre || "Cliente sin nombre", margen, y)
 
+    if (documento.cliente?.dni_cuit || documento.cliente?.dniCuit) {
+        y += 7
+        pdf.setFont("helvetica", "normal")
+        pdf.setFontSize(10)
+        pdf.setTextColor(54, 65, 99)
+        pdf.text(`DNI/CUIT: ${documento.cliente.dni_cuit || documento.cliente.dniCuit}`, margen, y)
+    }
+
+    if (documento.cliente?.direccion) {
+        y += 7
+        pdf.setFont("helvetica", "normal")
+        pdf.setFontSize(10)
+        pdf.setTextColor(54, 65, 99)
+        pdf.text(`Direccion: ${documento.cliente.direccion}`, margen, y)
+    }
+
     y += 14
     ;(documento.items || []).forEach((item) => {
         if (y > 260) {
@@ -140,6 +156,16 @@ const descargarPDF = async (documento) => {
     pdf.setFontSize(18)
     pdf.setTextColor(0, 166, 62)
     pdf.text(formatearPrecio(documento.total), anchoPagina - margen, y, { align: "right" })
+
+    if (documento.observaciones) {
+        y += 12
+        pdf.setFont("helvetica", "normal")
+        pdf.setFontSize(10)
+        pdf.setTextColor(54, 65, 99)
+        pdf.text("Observaciones", margen, y)
+        y += 6
+        pdf.text(pdf.splitTextToSize(documento.observaciones, anchoPagina - margen * 2), margen, y)
+    }
 
     y += 18
     pdf.setFont("helvetica", "italic")
@@ -348,6 +374,16 @@ export const DocumentosComponent = () => {
                             <div className="documentoVistaCliente">
                                 <span>Cliente</span>
                                 <strong>{documentoActivo.cliente?.nombre || "Cliente sin nombre"}</strong>
+                                {
+                                    (documentoActivo.cliente?.dni_cuit || documentoActivo.cliente?.dniCuit) && (
+                                        <p>DNI/CUIT: {documentoActivo.cliente.dni_cuit || documentoActivo.cliente.dniCuit}</p>
+                                    )
+                                }
+                                {
+                                    documentoActivo.cliente?.direccion && (
+                                        <p>Direccion: {documentoActivo.cliente.direccion}</p>
+                                    )
+                                }
                             </div>
 
                             <div className="documentoVistaItems">
@@ -368,6 +404,15 @@ export const DocumentosComponent = () => {
                                 <span>Total</span>
                                 <strong>{formatearPrecio(documentoActivo.total)}</strong>
                             </div>
+
+                            {
+                                documentoActivo.observaciones && (
+                                    <div className="documentoVistaObservaciones">
+                                        <span>Observaciones</span>
+                                        <p>{documentoActivo.observaciones}</p>
+                                    </div>
+                                )
+                            }
                         </article>
 
                         <button type="button" className="documentoModalDescargar" onClick={() => descargarPDF(documentoActivo)}>

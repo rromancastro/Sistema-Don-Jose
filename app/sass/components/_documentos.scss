@@ -416,6 +416,11 @@
         font-size: 16px;
         font-weight: 600;
     }
+
+    p {
+        color: #364163;
+        font-size: 14px;
+    }
 }
 
 .documentoVistaItems {
@@ -466,6 +471,25 @@
         color: #00A63E;
         font-size: 26px;
         font-weight: 500;
+    }
+}
+
+.documentoVistaObservaciones {
+    border-top: 1px solid #E5E7EB;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 16px;
+
+    span {
+        color: #364163;
+        font-size: 14px;
+    }
+
+    p {
+        color: #020617;
+        font-size: 14px;
+        line-height: 1.4;
     }
 }
 

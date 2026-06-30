@@ -13,6 +13,8 @@ const clienteVacio = {
     nombre: "",
     telefono: "",
     email: "",
+    dni_cuit: "",
+    direccion: "",
 }
 
 const formatearDinero = (valor) => `$${Number(valor || 0).toLocaleString("es-AR")}`
@@ -53,8 +55,10 @@ export const ClientesComponent = () => {
             const nombre = String(cliente.nombre || "").toLowerCase()
             const telefono = String(cliente.telefono || cliente.contacto || "").toLowerCase()
             const email = String(cliente.email || "").toLowerCase()
+            const dniCuit = String(cliente.dni_cuit || cliente.dniCuit || "").toLowerCase()
+            const direccion = String(cliente.direccion || "").toLowerCase()
 
-            return nombre.includes(textoBusqueda) || telefono.includes(textoBusqueda) || email.includes(textoBusqueda)
+            return nombre.includes(textoBusqueda) || telefono.includes(textoBusqueda) || email.includes(textoBusqueda) || dniCuit.includes(textoBusqueda) || direccion.includes(textoBusqueda)
         })
     }, [clientes, busqueda])
 
@@ -74,6 +78,8 @@ export const ClientesComponent = () => {
             nombre: nuevoCliente.nombre,
             telefono: nuevoCliente.telefono,
             email: nuevoCliente.email,
+            dni_cuit: nuevoCliente.dni_cuit,
+            direccion: nuevoCliente.direccion,
             ventas: 0,
             facturacion: 0,
             ganancia: 0,
@@ -102,6 +108,8 @@ export const ClientesComponent = () => {
             nombre: cliente.nombre || "",
             telefono: cliente.telefono || cliente.contacto || "",
             email: cliente.email || "",
+            dni_cuit: cliente.dni_cuit || cliente.dniCuit || "",
+            direccion: cliente.direccion || "",
         })
     }
 
@@ -115,6 +123,8 @@ export const ClientesComponent = () => {
             nombre: clienteEditado.nombre,
             telefono: clienteEditado.telefono,
             email: clienteEditado.email,
+            dni_cuit: clienteEditado.dni_cuit,
+            direccion: clienteEditado.direccion,
         }
 
         await actualizarDocumento("clientes", clienteId, clienteActualizado)
@@ -260,6 +270,26 @@ export const ClientesComponent = () => {
                                 placeholder="Email"
                                 aria-label="Email del cliente"
                             />
+                            <input
+                                type="text"
+                                value={nuevoCliente.dni_cuit}
+                                onChange={(e) => setNuevoCliente((clienteActual) => ({
+                                    ...clienteActual,
+                                    dni_cuit: e.target.value,
+                                }))}
+                                placeholder="DNI/CUIT"
+                                aria-label="DNI o CUIT del cliente"
+                            />
+                            <input
+                                type="text"
+                                value={nuevoCliente.direccion}
+                                onChange={(e) => setNuevoCliente((clienteActual) => ({
+                                    ...clienteActual,
+                                    direccion: e.target.value,
+                                }))}
+                                placeholder="Direccion"
+                                aria-label="Direccion del cliente"
+                            />
                             <div className="clienteEditActions">
                                 <button type="submit">
                                     <FaCheck />
@@ -322,6 +352,26 @@ export const ClientesComponent = () => {
                                         }))}
                                         aria-label="Email del cliente"
                                     />
+                                    <input
+                                        type="text"
+                                        value={clienteEditado.dni_cuit}
+                                        onChange={(e) => setClienteEditado((clienteActual) => ({
+                                            ...clienteActual,
+                                            dni_cuit: e.target.value,
+                                        }))}
+                                        aria-label="DNI o CUIT del cliente"
+                                        placeholder="DNI/CUIT"
+                                    />
+                                    <input
+                                        type="text"
+                                        value={clienteEditado.direccion}
+                                        onChange={(e) => setClienteEditado((clienteActual) => ({
+                                            ...clienteActual,
+                                            direccion: e.target.value,
+                                        }))}
+                                        aria-label="Direccion del cliente"
+                                        placeholder="Direccion"
+                                    />
                                     <div className="clienteEditActions">
                                         <button type="submit">
                                             <FaCheck />
@@ -351,6 +401,16 @@ export const ClientesComponent = () => {
                                 <>
                                     <p>{cliente.nombre}</p>
                                     <p>{cliente.telefono ? cliente.telefono : ""} - {cliente.email ? cliente.email : ""}</p>
+                                    {
+                                        (cliente.dni_cuit || cliente.dniCuit) && (
+                                            <p className="clienteDniCuit">DNI/CUIT: {cliente.dni_cuit || cliente.dniCuit}</p>
+                                        )
+                                    }
+                                    {
+                                        cliente.direccion && (
+                                            <p className="clienteDniCuit">Direccion: {cliente.direccion}</p>
+                                        )
+                                    }
                                     <div className="clienteStats">
                                         <p>Ventas <span>{Number(cliente.ventas || 0)}</span></p>
                                         <p>Facturacion <span>{formatearDinero(cliente.facturacion)}</span></p>
