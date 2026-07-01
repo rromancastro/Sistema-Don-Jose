@@ -2,6 +2,7 @@
     flex-direction: column;
     align-items: start;
     gap: 8px;
+
     img {
         height: 60px;
         width: auto;
@@ -24,20 +25,17 @@
     }
 }
 
-.mainHoyContainer {
-    >div.mainHoyGrid {
-        display: grid;
-        grid-template-columns: minmax(180px, .55fr) minmax(280px, 1fr) minmax(280px, 1fr);
-        gap: 16px;
-        align-items: stretch;
-    }
+.mainHoyContainer {}
+
+.mainHoyGrid {
+    display: flex;
 }
 
 .mainHoyStats {
     display: grid;
     grid-template-columns: 1fr;
     gap: 16px;
-    width: 100%;
+    width: 500px;
 }
 
 .mainInfoCard {
@@ -305,6 +303,7 @@
     flex-direction: column;
     gap: 10px;
     min-height: 100%;
+    width: 100%;
     overflow: hidden;
     padding: 14px;
     min-width: fit-content;
@@ -558,6 +557,7 @@
         color: #7010E8;
         font-size: 28px;
     }
+
     p {
         color: #7010E8;
         font-size: 16px;

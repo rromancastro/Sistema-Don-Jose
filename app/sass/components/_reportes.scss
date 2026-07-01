@@ -1,0 +1,471 @@
+#reportesContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: var(--space-page);
+}
+
+.reportesTabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    button {
+        border: 0;
+        border-radius: 9px;
+        background-color: #F3F4F6;
+        color: #334155;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 700;
+        min-height: 36px;
+        padding: 0 16px;
+    }
+
+    .reportesTabActiva {
+        background-color: #7F22FE;
+        color: #fff;
+    }
+}
+
+.reportesRango {
+    border: 2px solid #E2E8F0;
+    border-radius: 14px;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px;
+}
+
+.reportesRangoHeader {
+    align-items: center;
+    display: flex;
+    gap: 10px;
+
+    >div:last-child {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+    }
+
+    span {
+        color: #0F172A;
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    p {
+        color: #64748B;
+        font-size: 13px;
+    }
+}
+
+.reportesRangoIcono {
+    align-items: center;
+    border-radius: 10px;
+    background-color: #F5F3FF;
+    color: #7F22FE;
+    display: flex;
+    height: 40px;
+    justify-content: center;
+    width: 40px;
+
+    svg {
+        font-size: 20px;
+    }
+}
+
+.reportesRangoResumen {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+
+    button {
+        border: 1px solid #DDD6FE;
+        border-radius: 10px;
+        background-color: #FAF5FF;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-height: 62px;
+        padding: 10px 12px;
+        text-align: left;
+    }
+
+    button:hover {
+        border-color: #7F22FE;
+        background-color: #F5F3FF;
+    }
+
+    span {
+        color: #6D28D9;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    strong {
+        color: #0F172A;
+        font-size: 14px;
+        font-weight: 700;
+    }
+}
+
+.reportesCalendarios {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.reporteCalendario {
+    border: 1px solid #EDE9FE;
+    border-radius: 12px;
+    background-color: #FCFCFD;
+    overflow: hidden;
+}
+
+.reporteCalendarioHeader {
+    align-items: center;
+    border-bottom: 1px solid #F1F5F9;
+    display: grid;
+    grid-template-columns: 34px 1fr 34px;
+    gap: 8px;
+    padding: 10px;
+    text-align: center;
+
+    button {
+        align-items: center;
+        border: 0;
+        border-radius: 8px;
+        background-color: transparent;
+        color: #64748B;
+        cursor: pointer;
+        display: flex;
+        height: 34px;
+        justify-content: center;
+        width: 34px;
+    }
+
+    button:hover {
+        background-color: #F5F3FF;
+        color: #7F22FE;
+    }
+
+    span {
+        color: #7F22FE;
+        display: block;
+        font-size: 12px;
+        font-weight: 800;
+        margin-bottom: 2px;
+        text-transform: uppercase;
+    }
+
+    p {
+        color: #0F172A;
+        font-size: 14px;
+        font-weight: 700;
+    }
+}
+
+.reporteCalendarioGrid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    padding: 10px;
+
+    button {
+        align-items: center;
+        border: 0;
+        border-radius: 9px;
+        background-color: transparent;
+        color: #0F172A;
+        cursor: pointer;
+        display: flex;
+        font-size: 13px;
+        font-weight: 500;
+        height: 34px;
+        justify-content: center;
+        min-width: 0;
+    }
+
+    button:hover {
+        background-color: #F5F3FF;
+        color: #6D28D9;
+    }
+
+    .reporteCalendarioEnRango {
+        background-color: #F3E8FF;
+        color: #6D28D9;
+    }
+
+    .reporteCalendarioActivo {
+        background-color: #7F22FE;
+        color: #fff;
+        font-weight: 800;
+        box-shadow: 0 6px 12px #7F22FE26;
+    }
+}
+
+.reporteCalendarioDiaSemana,
+.reporteCalendarioVacio {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    min-height: 26px;
+}
+
+.reporteCalendarioDiaSemana {
+    color: #94A3B8;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.reportesResumenGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.reporteMetricCard {
+    border: 2px solid #E2E8F0;
+    border-radius: 14px;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 142px;
+    padding: 16px;
+
+    div {
+        align-items: center;
+        border-radius: 9px;
+        color: #fff;
+        display: flex;
+        height: 36px;
+        justify-content: center;
+        width: 36px;
+
+        svg {
+            font-size: 20px;
+        }
+    }
+
+    p {
+        color: #364153;
+        font-size: 14px;
+    }
+
+    strong {
+        color: #020617;
+        font-size: 24px;
+        font-weight: 500;
+    }
+}
+
+.reporteMetricCardFull {
+    grid-column: 1 / -1;
+}
+
+.reportePanel {
+    border: 2px solid #E2E8F0;
+    border-radius: 14px;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow: hidden;
+    padding: 16px;
+}
+
+.reportePanel h2,
+.reporteRanking h2,
+.reporteRendimiento h2 {
+    align-items: center;
+    color: #0F172A;
+    display: flex;
+    font-size: 18px;
+    font-weight: 700;
+    gap: 8px;
+}
+
+.reporteGraficoSvg {
+    display: block;
+    height: 190px;
+    width: 100%;
+
+    line {
+        stroke: #E2E8F0;
+        stroke-dasharray: 3 4;
+    }
+
+    text {
+        fill: #64748B;
+        font-size: 12px;
+        text-anchor: end;
+    }
+
+    .reporteGraficoFecha {
+        text-anchor: middle;
+    }
+
+    .reporteGraficoEje {
+        stroke: #94A3B8;
+        stroke-dasharray: none;
+    }
+
+    .reporteGraficoGuia {
+        stroke: #E2E8F0;
+    }
+}
+
+.reporteGraficoLinea {
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 4;
+}
+.reporteGraficoLineaVentas {
+    stroke: #00A63E;
+}
+.reporteGraficoLineaCompras {
+    stroke: #F54900;
+}
+.reporteGraficoLineaGanancia {
+    stroke: #7F22FE;
+}
+.reporteGraficoPunto {
+    fill: #7F22FE;
+}
+
+.reporteRendimiento {
+    border: 2px solid #86EFAC;
+    border-radius: 14px;
+    background-color: #F0FDF4;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 18px;
+
+    h2 svg,
+    strong {
+        color: #00A63E;
+    }
+
+    strong {
+        font-size: 28px;
+        font-weight: 500;
+    }
+
+    p {
+        color: #4A5579;
+        font-size: 14px;
+    }
+}
+
+.reporteRanking {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px 0 0;
+
+    h2 svg {
+        font-size: 20px;
+    }
+}
+
+.reporteRankingItem {
+    align-items: center;
+    border: 2px solid;
+    border-radius: 12px;
+    background-color: #fff;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    min-height: 74px;
+    padding: 14px 12px;
+
+    p {
+        color: #020617;
+        font-size: 16px;
+        margin-bottom: 4px;
+    }
+
+    span {
+        color: #364153;
+        display: block;
+        font-size: 14px;
+    }
+
+    strong {
+        display: block;
+        font-size: 16px;
+        font-weight: 500;
+        text-align: right;
+    }
+
+    >div:last-child {
+        text-align: right;
+    }
+}
+
+.reporteRankingProducto {
+    border-color: #FACC15;
+
+    strong {
+        color: #F54900;
+    }
+}
+.reporteRankingCliente {
+    border-color: #86EFAC;
+
+    strong {
+        color: #00A63E;
+    }
+}
+.reporteRankingProveedor {
+    border-color: #BEDBFF;
+
+    strong {
+        color: #155DFC;
+    }
+}
+
+.reporteRankingVacio,
+.reportesCargando {
+    color: #94A3B8;
+    font-size: 16px;
+    padding: 24px 0;
+    text-align: center;
+}
+
+@media (max-width: 720px) {
+    .reportesResumenGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .reporteMetricCardFull {
+        grid-column: auto;
+    }
+
+    .reportesRango {
+        padding: 12px;
+    }
+
+    .reportesRangoResumen,
+    .reportesCalendarios {
+        grid-template-columns: 1fr;
+    }
+
+    .reporteRankingItem {
+        align-items: flex-start;
+        grid-template-columns: 1fr;
+
+        strong,
+        >div:last-child {
+            text-align: left;
+        }
+    }
+}

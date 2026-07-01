@@ -595,6 +595,42 @@
     }
 }
 
+.ventaFacturaElectronica {
+    border: 1px solid #CBD5E1;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px;
+
+    span {
+        color: #364163;
+        font-size: 14px;
+    }
+
+    strong {
+        color: #020617;
+        font-size: 15px;
+        font-weight: 700;
+    }
+
+    p {
+        color: #364163;
+        font-size: 13px;
+        line-height: 1.35;
+    }
+}
+
+.ventaFacturaElectronicaEmitida {
+    border-color: #86EFAC;
+    background-color: #F0FDF4;
+}
+
+.ventaFacturaElectronicaPendiente {
+    border-color: #FCD34D;
+    background-color: #FFFBEB;
+}
+
 .ventaComprobanteItems {
     border-bottom: 1px dashed #CBD5E1;
     display: flex;

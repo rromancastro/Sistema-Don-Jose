@@ -22,18 +22,15 @@
   gap: 16px;
 }
 
-.mainHoyContainer > div.mainHoyGrid {
-  display: grid;
-  grid-template-columns: minmax(180px, 0.55fr) minmax(280px, 1fr) minmax(280px, 1fr);
-  gap: 16px;
-  align-items: stretch;
+.mainHoyGrid {
+  display: flex;
 }
 
 .mainHoyStats {
   display: grid;
   grid-template-columns: 1fr;
   gap: 16px;
-  width: 100%;
+  width: 500px;
 }
 
 .mainInfoCard {
@@ -275,6 +272,7 @@
   flex-direction: column;
   gap: 10px;
   min-height: 100%;
+  width: 100%;
   overflow: hidden;
   padding: 14px;
   min-width: fit-content;
@@ -1538,6 +1536,39 @@
 .ventaComprobanteCliente p {
   color: #364163;
   font-size: 14px;
+}
+
+.ventaFacturaElectronica {
+  border: 1px solid #CBD5E1;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+}
+.ventaFacturaElectronica span {
+  color: #364163;
+  font-size: 14px;
+}
+.ventaFacturaElectronica strong {
+  color: #020617;
+  font-size: 15px;
+  font-weight: 700;
+}
+.ventaFacturaElectronica p {
+  color: #364163;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.ventaFacturaElectronicaEmitida {
+  border-color: #86EFAC;
+  background-color: #F0FDF4;
+}
+
+.ventaFacturaElectronicaPendiente {
+  border-color: #FCD34D;
+  background-color: #FFFBEB;
 }
 
 .ventaComprobanteItems {
@@ -3556,6 +3587,440 @@
   }
   .historialCompraDatos {
     grid-template-columns: 1fr;
+  }
+}
+#reportesContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: var(--space-page);
+}
+
+.reportesTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.reportesTabs button {
+  border: 0;
+  border-radius: 9px;
+  background-color: #F3F4F6;
+  color: #334155;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  min-height: 36px;
+  padding: 0 16px;
+}
+.reportesTabs .reportesTabActiva {
+  background-color: #7F22FE;
+  color: #fff;
+}
+
+.reportesRango {
+  border: 2px solid #E2E8F0;
+  border-radius: 14px;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+}
+
+.reportesRangoHeader {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+}
+.reportesRangoHeader > div:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.reportesRangoHeader span {
+  color: #0F172A;
+  font-size: 16px;
+  font-weight: 700;
+}
+.reportesRangoHeader p {
+  color: #64748B;
+  font-size: 13px;
+}
+
+.reportesRangoIcono {
+  align-items: center;
+  border-radius: 10px;
+  background-color: #F5F3FF;
+  color: #7F22FE;
+  display: flex;
+  height: 40px;
+  justify-content: center;
+  width: 40px;
+}
+.reportesRangoIcono svg {
+  font-size: 20px;
+}
+
+.reportesRangoResumen {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.reportesRangoResumen button {
+  border: 1px solid #DDD6FE;
+  border-radius: 10px;
+  background-color: #FAF5FF;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 62px;
+  padding: 10px 12px;
+  text-align: left;
+}
+.reportesRangoResumen button:hover {
+  border-color: #7F22FE;
+  background-color: #F5F3FF;
+}
+.reportesRangoResumen span {
+  color: #6D28D9;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.reportesRangoResumen strong {
+  color: #0F172A;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.reportesCalendarios {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.reporteCalendario {
+  border: 1px solid #EDE9FE;
+  border-radius: 12px;
+  background-color: #FCFCFD;
+  overflow: hidden;
+}
+
+.reporteCalendarioHeader {
+  align-items: center;
+  border-bottom: 1px solid #F1F5F9;
+  display: grid;
+  grid-template-columns: 34px 1fr 34px;
+  gap: 8px;
+  padding: 10px;
+  text-align: center;
+}
+.reporteCalendarioHeader button {
+  align-items: center;
+  border: 0;
+  border-radius: 8px;
+  background-color: transparent;
+  color: #64748B;
+  cursor: pointer;
+  display: flex;
+  height: 34px;
+  justify-content: center;
+  width: 34px;
+}
+.reporteCalendarioHeader button:hover {
+  background-color: #F5F3FF;
+  color: #7F22FE;
+}
+.reporteCalendarioHeader span {
+  color: #7F22FE;
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  margin-bottom: 2px;
+  text-transform: uppercase;
+}
+.reporteCalendarioHeader p {
+  color: #0F172A;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.reporteCalendarioGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  padding: 10px;
+}
+.reporteCalendarioGrid button {
+  align-items: center;
+  border: 0;
+  border-radius: 9px;
+  background-color: transparent;
+  color: #0F172A;
+  cursor: pointer;
+  display: flex;
+  font-size: 13px;
+  font-weight: 500;
+  height: 34px;
+  justify-content: center;
+  min-width: 0;
+}
+.reporteCalendarioGrid button:hover {
+  background-color: #F5F3FF;
+  color: #6D28D9;
+}
+.reporteCalendarioGrid .reporteCalendarioEnRango {
+  background-color: #F3E8FF;
+  color: #6D28D9;
+}
+.reporteCalendarioGrid .reporteCalendarioActivo {
+  background-color: #7F22FE;
+  color: #fff;
+  font-weight: 800;
+  box-shadow: 0 6px 12px rgba(127, 34, 254, 0.1490196078);
+}
+
+.reporteCalendarioDiaSemana,
+.reporteCalendarioVacio {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  min-height: 26px;
+}
+
+.reporteCalendarioDiaSemana {
+  color: #94A3B8;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.reportesResumenGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.reporteMetricCard {
+  border: 2px solid #E2E8F0;
+  border-radius: 14px;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 142px;
+  padding: 16px;
+}
+.reporteMetricCard div {
+  align-items: center;
+  border-radius: 9px;
+  color: #fff;
+  display: flex;
+  height: 36px;
+  justify-content: center;
+  width: 36px;
+}
+.reporteMetricCard div svg {
+  font-size: 20px;
+}
+.reporteMetricCard p {
+  color: #364153;
+  font-size: 14px;
+}
+.reporteMetricCard strong {
+  color: #020617;
+  font-size: 24px;
+  font-weight: 500;
+}
+
+.reporteMetricCardFull {
+  grid-column: 1/-1;
+}
+
+.reportePanel {
+  border: 2px solid #E2E8F0;
+  border-radius: 14px;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: hidden;
+  padding: 16px;
+}
+
+.reportePanel h2,
+.reporteRanking h2,
+.reporteRendimiento h2 {
+  align-items: center;
+  color: #0F172A;
+  display: flex;
+  font-size: 18px;
+  font-weight: 700;
+  gap: 8px;
+}
+
+.reporteGraficoSvg {
+  display: block;
+  height: 190px;
+  width: 100%;
+}
+.reporteGraficoSvg line {
+  stroke: #E2E8F0;
+  stroke-dasharray: 3 4;
+}
+.reporteGraficoSvg text {
+  fill: #64748B;
+  font-size: 12px;
+  text-anchor: end;
+}
+.reporteGraficoSvg .reporteGraficoFecha {
+  text-anchor: middle;
+}
+.reporteGraficoSvg .reporteGraficoEje {
+  stroke: #94A3B8;
+  stroke-dasharray: none;
+}
+.reporteGraficoSvg .reporteGraficoGuia {
+  stroke: #E2E8F0;
+}
+
+.reporteGraficoLinea {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 4;
+}
+
+.reporteGraficoLineaVentas {
+  stroke: #00A63E;
+}
+
+.reporteGraficoLineaCompras {
+  stroke: #F54900;
+}
+
+.reporteGraficoLineaGanancia {
+  stroke: #7F22FE;
+}
+
+.reporteGraficoPunto {
+  fill: #7F22FE;
+}
+
+.reporteRendimiento {
+  border: 2px solid #86EFAC;
+  border-radius: 14px;
+  background-color: #F0FDF4;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 18px;
+}
+.reporteRendimiento h2 svg,
+.reporteRendimiento strong {
+  color: #00A63E;
+}
+.reporteRendimiento strong {
+  font-size: 28px;
+  font-weight: 500;
+}
+.reporteRendimiento p {
+  color: #4A5579;
+  font-size: 14px;
+}
+
+.reporteRanking {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 0 0;
+}
+.reporteRanking h2 svg {
+  font-size: 20px;
+}
+
+.reporteRankingItem {
+  align-items: center;
+  border: 2px solid;
+  border-radius: 12px;
+  background-color: #fff;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  min-height: 74px;
+  padding: 14px 12px;
+}
+.reporteRankingItem p {
+  color: #020617;
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+.reporteRankingItem span {
+  color: #364153;
+  display: block;
+  font-size: 14px;
+}
+.reporteRankingItem strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 500;
+  text-align: right;
+}
+.reporteRankingItem > div:last-child {
+  text-align: right;
+}
+
+.reporteRankingProducto {
+  border-color: #FACC15;
+}
+.reporteRankingProducto strong {
+  color: #F54900;
+}
+
+.reporteRankingCliente {
+  border-color: #86EFAC;
+}
+.reporteRankingCliente strong {
+  color: #00A63E;
+}
+
+.reporteRankingProveedor {
+  border-color: #BEDBFF;
+}
+.reporteRankingProveedor strong {
+  color: #155DFC;
+}
+
+.reporteRankingVacio,
+.reportesCargando {
+  color: #94A3B8;
+  font-size: 16px;
+  padding: 24px 0;
+  text-align: center;
+}
+
+@media (max-width: 720px) {
+  .reportesResumenGrid {
+    grid-template-columns: 1fr;
+  }
+  .reporteMetricCardFull {
+    grid-column: auto;
+  }
+  .reportesRango {
+    padding: 12px;
+  }
+  .reportesRangoResumen,
+  .reportesCalendarios {
+    grid-template-columns: 1fr;
+  }
+  .reporteRankingItem {
+    align-items: flex-start;
+    grid-template-columns: 1fr;
+  }
+  .reporteRankingItem strong,
+  .reporteRankingItem > div:last-child {
+    text-align: left;
   }
 }
 @font-face {

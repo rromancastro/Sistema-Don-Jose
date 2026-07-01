@@ -550,10 +550,10 @@ export const MainComponent = () => {
                     <GoHistory />
                     <p>Historial</p>
                 </Link>
-                <article className="gestionCard bdRadius animClick boxShadow">
+                <Link href={'/reportes'} className="gestionCard bdRadius animClick boxShadow">
                     <FaRegChartBar />
                     <p>Reportes</p>
-                </article>
+                </Link>
             </div>
         </div>
     </section>
