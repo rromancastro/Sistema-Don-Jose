@@ -7,6 +7,15 @@ import { FaArrowLeft, FaCheck, FaTimes } from "react-icons/fa"
 import { FiBox, FiEye } from "react-icons/fi"
 import { GoPencil, GoTrash } from "react-icons/go"
 import { actualizarDocumento, crearDocumento, eliminarDocumento, obtenerDocumentos } from "../lib/firebase"
+import {
+    formatearDineroConDecimales as formatearPrecio,
+    normalizarLista,
+    normalizarProducto,
+    obtenerCostoProducto,
+    obtenerNombreProducto,
+    obtenerStockProducto,
+    obtenerTipoStock,
+} from "../lib/normalizadores"
 import { NavComponent } from "./NavComponent"
 
 const TABS = {
@@ -16,12 +25,6 @@ const TABS = {
 
 const CATEGORIAS_FRUTA_FRESCA = ["Fruta Fresca", "Fruta Fresta"]
 const CATEGORIAS_DESHIDRATADOS = ["Frutas Secas", "Frutas Frescas", "Mix"]
-
-const obtenerNombreProducto = (producto) => producto.nombre || producto.producto || "Producto sin nombre"
-const obtenerStockProducto = (producto) => Number(producto.stock ?? producto.stock_kg ?? producto.cantidad_kg ?? 0)
-const obtenerTipoStock = (producto) => producto.tipo_stock || "kg"
-const obtenerCostoProducto = (producto) => Number(producto.costo ?? producto.costo_kg ?? producto.precio_costo ?? 0)
-const formatearPrecio = (valor) => `$${Number(valor || 0).toFixed(2)}`
 
 const productoVacio = {
     nombre: "",
@@ -49,7 +52,7 @@ export const StockComponent = () => {
     useEffect(() => {
         const cargarProductos = async () => {
             const data = await obtenerDocumentos("productos")
-            setProductos(data)
+            setProductos(normalizarLista(data, normalizarProducto))
         }
 
         cargarProductos()
@@ -178,10 +181,10 @@ export const StockComponent = () => {
         const id = await crearDocumento("productos", productoParaCrear)
 
         setProductos((productosActuales) => [
-            {
+            normalizarProducto({
                 id,
                 ...productoParaCrear,
-            },
+            }),
             ...productosActuales,
         ])
         cancelarCrearProducto()
@@ -221,10 +224,10 @@ export const StockComponent = () => {
         setProductos((productosActuales) => productosActuales.map((producto) => {
             if (producto.id !== productoId) return producto
 
-            return {
+            return normalizarProducto({
                 ...producto,
                 ...productoActualizado,
-            }
+            })
         }))
         cancelarEdicionProducto()
     }

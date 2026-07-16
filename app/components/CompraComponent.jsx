@@ -4,28 +4,21 @@ import Link from "next/link"
 import { useEffect, useMemo, useState } from "react"
 import { AiOutlinePlus } from "react-icons/ai"
 import { FaArrowLeft, FaCheck, FaTimes } from "react-icons/fa"
+import { obtenerFechaActual } from "../lib/fechas"
 import { actualizarDocumento, crearDocumento, obtenerDocumentos } from "../lib/firebase"
+import {
+    formatearDineroConDecimales as formatearPrecio,
+    formatearTipoStock,
+    normalizarLista,
+    normalizarProducto,
+    normalizarProveedor,
+    obtenerNombreProducto,
+    obtenerStockProducto,
+    obtenerTipoStock,
+} from "../lib/normalizadores"
 import { NavComponent } from "./NavComponent"
 
 const CATEGORIA_COMPRA = "Fruta Fresca"
-
-const obtenerNombreProducto = (producto) => producto.nombre || producto.producto || "Producto sin nombre"
-const obtenerStockProducto = (producto) => Number(producto.stock ?? producto.stock_kg ?? producto.cantidad_kg ?? 0)
-const obtenerTipoStock = (producto) => producto.tipo_stock || "kg"
-const formatearPrecio = (valor) => `$${Number(valor || 0).toFixed(2)}`
-const formatearTipoStock = (tipoStock, cantidad = 1) => {
-    if (tipoStock === "unidad") return cantidad === 1 ? "unidad" : "unidades"
-
-    return "kg"
-}
-const obtenerFechaActual = () => {
-    const ahora = new Date()
-    const anio = ahora.getFullYear()
-    const mes = String(ahora.getMonth() + 1).padStart(2, "0")
-    const dia = String(ahora.getDate()).padStart(2, "0")
-
-    return `${anio}-${mes}-${dia}`
-}
 
 export const CompraComponent = () => {
     const [productos, setProductos] = useState([])
@@ -44,12 +37,14 @@ export const CompraComponent = () => {
                 obtenerDocumentos("proveedores"),
             ])
 
-            const productosFrutaFresca = productosData.filter((producto) => producto.categoria === CATEGORIA_COMPRA)
+            const productosNormalizados = normalizarLista(productosData, normalizarProducto)
+            const proveedoresNormalizados = normalizarLista(proveedoresData, normalizarProveedor)
+            const productosFrutaFresca = productosNormalizados.filter((producto) => producto.categoria === CATEGORIA_COMPRA)
 
             setProductos(productosFrutaFresca)
-            setProveedores(proveedoresData)
+            setProveedores(proveedoresNormalizados)
             setProductoId(productosFrutaFresca[0]?.id || "")
-            setProveedorId(proveedoresData[0]?.id || "")
+            setProveedorId(proveedoresNormalizados[0]?.id || "")
         }
 
         cargarDatos()
@@ -115,10 +110,10 @@ export const CompraComponent = () => {
         const id = await crearDocumento("productos", productoParaCrear)
 
         setProductos((productosActuales) => [
-            {
+            normalizarProducto({
                 id,
                 ...productoParaCrear,
-            },
+            }),
             ...productosActuales,
         ])
         setProductoId(id)
@@ -157,23 +152,23 @@ export const CompraComponent = () => {
         setProductos((productosActuales) => productosActuales.map((producto) => {
             if (producto.id !== productoSeleccionado.id) return producto
 
-            return {
+            return normalizarProducto({
                 ...producto,
                 categoria: CATEGORIA_COMPRA,
                 costo: costoNumerico,
                 disponible: true,
                 stock: stockActualizado,
                 tipo_stock: tipoStockProducto,
-            }
+            })
         }))
 
         setProveedores((proveedoresActuales) => proveedoresActuales.map((proveedor) => {
             if (proveedor.id !== proveedorSeleccionado.id) return proveedor
 
-            return {
+            return normalizarProveedor({
                 ...proveedor,
                 compras: Number(proveedor.compras || 0) + 1,
-            }
+            })
         }))
 
         setCantidadKg("")

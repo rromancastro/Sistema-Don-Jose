@@ -3,41 +3,26 @@
 import Link from "next/link"
 import { useEffect, useMemo, useState } from "react"
 import { AiOutlinePlus } from "react-icons/ai"
-import { FaArrowLeft, FaCheck, FaDownload, FaHome, FaRegFileAlt, FaTimes, FaTrashAlt, FaUserPlus } from "react-icons/fa"
+import { FaArrowLeft, FaCheck, FaRegFileAlt, FaTimes, FaTrashAlt, FaUserPlus } from "react-icons/fa"
 import { FiShoppingCart } from "react-icons/fi"
+import { formatearFechaHora, obtenerFechaActual } from "../lib/fechas"
 import { actualizarDocumento, crearDocumento, obtenerDocumentos } from "../lib/firebase"
+import {
+    formatearDineroConDecimales as formatearPrecio,
+    formatearTipoStock,
+    normalizarCliente,
+    normalizarLista,
+    normalizarProducto,
+    obtenerCostoProducto,
+    obtenerNombreProducto,
+    obtenerPrecioMayorista,
+    obtenerPrecioMinorista,
+    obtenerStockProducto,
+    obtenerTipoStock,
+} from "../lib/normalizadores"
+import { registrarVenta } from "../lib/ventas"
 import { NavComponent } from "./NavComponent"
-
-const obtenerNombreProducto = (producto) => producto.nombre || producto.producto || "Producto sin nombre"
-const obtenerStockProducto = (producto) => Number(producto.stock_kg ?? producto.stock ?? producto.cantidad_kg ?? 0)
-const obtenerTipoStock = (producto) => producto.tipo_stock || "kg"
-const obtenerPrecioMayorista = (producto) => Number(producto.precio_mayorista ?? producto.mayorista ?? producto.precioMayorista ?? producto.precio_kg ?? producto.precio ?? 0)
-const obtenerPrecioMinorista = (producto) => Number(producto.precio_minorista ?? producto.minorista ?? producto.precioMinorista ?? producto.precio_venta ?? producto.precio ?? 0)
-const obtenerCostoProducto = (producto) => Number(producto.costo ?? producto.costo_kg ?? producto.precio_costo ?? 0)
-const formatearPrecio = (valor) => `$${Number(valor || 0).toFixed(2)}`
-const formatearDocumento = (documento) => documento === "factura" ? "Factura" : "Remito"
-const formatearMetodoPago = (metodo) => metodo === "transferencia" ? "Transferencia" : "Efectivo"
-const formatearEstadoPago = (estado) => estado === "incompleto" ? "Incompleto" : "Completo"
-const formatearTipoStock = (tipoStock, cantidad = 1) => {
-    if (tipoStock === "unidad") return cantidad === 1 ? "unidad" : "unidades"
-
-    return "kg"
-}
-const obtenerFechaActual = () => {
-    const ahora = new Date()
-    const anio = ahora.getFullYear()
-    const mes = String(ahora.getMonth() + 1).padStart(2, "0")
-    const dia = String(ahora.getDate()).padStart(2, "0")
-
-    return `${anio}-${mes}-${dia}`
-}
-const formatearFechaHora = (fecha) => new Intl.DateTimeFormat("es-AR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-}).format(fecha)
+import { VentaComprobante } from "./venta/VentaComprobante"
 
 export const VentaComponent = () => {
     const [clientes, setClientes] = useState([])
@@ -47,6 +32,10 @@ export const VentaComponent = () => {
     const [nuevoCliente, setNuevoCliente] = useState({
         nombre: "",
         contacto: "",
+        dni_cuit: "",
+        direccion: "",
+    })
+    const [datosClientePendientes, setDatosClientePendientes] = useState({
         dni_cuit: "",
         direccion: "",
     })
@@ -69,9 +58,11 @@ export const VentaComponent = () => {
                 obtenerDocumentos("productos"),
             ])
 
-            setClientes(clientesData)
-            setProductos(productosData)
-            setClienteId(clientesData[0]?.id || "")
+            const clientesNormalizados = normalizarLista(clientesData, normalizarCliente)
+
+            setClientes(clientesNormalizados)
+            setProductos(normalizarLista(productosData, normalizarProducto))
+            setClienteId(clientesNormalizados[0]?.id || "")
         }
 
         cargarDatos()
@@ -84,6 +75,13 @@ export const VentaComponent = () => {
     const clienteSeleccionado = useMemo(() => {
         return clientes.find((cliente) => cliente.id === clienteId)
     }, [clientes, clienteId])
+
+    useEffect(() => {
+        setDatosClientePendientes({
+            dni_cuit: clienteSeleccionado?.dni_cuit || "",
+            direccion: clienteSeleccionado?.direccion || "",
+        })
+    }, [clienteSeleccionado])
 
     const precioMayorista = productoSeleccionado ? obtenerPrecioMayorista(productoSeleccionado) : 0
     const precioMinorista = productoSeleccionado ? obtenerPrecioMinorista(productoSeleccionado) : 0
@@ -107,7 +105,7 @@ export const VentaComponent = () => {
     const montoPagadoNumerico = estadoPago === "completo" ? totalVenta : Number(montoPagado || 0)
     const montoDebe = estadoPago === "completo" ? 0 : Math.max(totalVenta - montoPagadoNumerico, 0)
     const pagoValido = estadoPago === "completo" || (montoPagadoNumerico >= 0 && montoPagadoNumerico <= totalVenta)
-    const dniCuitClienteValido = Boolean((clienteSeleccionado?.dni_cuit || clienteSeleccionado?.dniCuit || "").trim())
+    const dniCuitClienteValido = Boolean((clienteSeleccionado?.dni_cuit || "").trim())
     const direccionClienteValida = Boolean((clienteSeleccionado?.direccion || "").trim())
     const ventaValida = pagoValido && dniCuitClienteValido && direccionClienteValida
 
@@ -143,14 +141,39 @@ export const VentaComponent = () => {
         const id = await crearDocumento("clientes", clienteParaCrear)
 
         setClientes((clientesActuales) => [
-            {
+            normalizarCliente({
                 id,
                 ...clienteParaCrear,
-            },
+            }),
             ...clientesActuales,
         ])
         setClienteId(id)
         cancelarCrearCliente()
+    }
+
+    const guardarDatosClientePendientes = async () => {
+        if (!clienteSeleccionado) return
+
+        const dniCuit = datosClientePendientes.dni_cuit.trim()
+        const direccion = datosClientePendientes.direccion.trim()
+
+        if (!dniCuit || !direccion) return
+
+        const clienteActualizado = {
+            dni_cuit: dniCuit,
+            direccion,
+        }
+
+        await actualizarDocumento("clientes", clienteSeleccionado.id, clienteActualizado)
+
+        setClientes((clientesActuales) => clientesActuales.map((cliente) => {
+            if (cliente.id !== clienteSeleccionado.id) return cliente
+
+            return normalizarCliente({
+                ...cliente,
+                ...clienteActualizado,
+            })
+        }))
     }
 
     const cambiarCantidadKg = (valor) => {
@@ -237,264 +260,38 @@ export const VentaComponent = () => {
         }
     }
 
-    const descargarPDF = async () => {
-        if (!comprobanteVenta) return
-
-        const { jsPDF } = await import("jspdf")
-        const pdf = new jsPDF()
-        const margen = 18
-        const anchoPagina = pdf.internal.pageSize.getWidth()
-        let y = 22
-
-        pdf.setFont("helvetica", "bold")
-        pdf.setFontSize(20)
-        pdf.setTextColor(127, 34, 254)
-        pdf.text("Don Jose", anchoPagina / 2, y, { align: "center" })
-
-        y += 8
-        pdf.setFont("helvetica", "normal")
-        pdf.setFontSize(10)
-        pdf.setTextColor(54, 65, 99)
-        pdf.text("Frutos Secos", anchoPagina / 2, y, { align: "center" })
-
-        y += 8
-        pdf.text(`${formatearDocumento(comprobanteVenta.tipo_documento)} - ${comprobanteVenta.fecha_hora}`, anchoPagina / 2, y, { align: "center" })
-
-        if (comprobanteVenta.tipo_documento === "factura" && comprobanteVenta.factura_electronica) {
-            y += 7
-            const estadoFactura = comprobanteVenta.factura_electronica.cae
-                ? `CAE: ${comprobanteVenta.factura_electronica.cae}`
-                : `Factura electronica: ${comprobanteVenta.factura_electronica.mensaje || "pendiente"}`
-
-            pdf.text(estadoFactura, anchoPagina / 2, y, { align: "center" })
-        }
-
-        y += 14
-        pdf.setDrawColor(203, 213, 225)
-        pdf.line(margen, y, anchoPagina - margen, y)
-
-        y += 12
-        pdf.setFont("helvetica", "normal")
-        pdf.setFontSize(10)
-        pdf.setTextColor(54, 65, 99)
-        pdf.text("Cliente", margen, y)
-
-        y += 8
-        pdf.setFont("helvetica", "bold")
-        pdf.setFontSize(12)
-        pdf.setTextColor(15, 23, 42)
-        pdf.text(comprobanteVenta.cliente.nombre, margen, y)
-
-        if (comprobanteVenta.cliente.dni_cuit) {
-            y += 7
-            pdf.setFont("helvetica", "normal")
-            pdf.setFontSize(10)
-            pdf.setTextColor(54, 65, 99)
-            pdf.text(`DNI/CUIT: ${comprobanteVenta.cliente.dni_cuit}`, margen, y)
-        }
-
-        if (comprobanteVenta.cliente.direccion) {
-            y += 7
-            pdf.setFont("helvetica", "normal")
-            pdf.setFontSize(10)
-            pdf.setTextColor(54, 65, 99)
-            pdf.text(`Direccion: ${comprobanteVenta.cliente.direccion}`, margen, y)
-        }
-
-        y += 14
-        comprobanteVenta.items.forEach((item) => {
-            if (y > 260) {
-                pdf.addPage()
-                y = 22
-            }
-
-            pdf.setFillColor(248, 250, 252)
-            pdf.roundedRect(margen, y - 7, anchoPagina - margen * 2, 18, 2, 2, "F")
-            pdf.setFont("helvetica", "bold")
-            pdf.setFontSize(11)
-            pdf.setTextColor(15, 23, 42)
-            pdf.text(item.nombre, margen + 4, y)
-            pdf.text(formatearPrecio(item.subtotal), anchoPagina - margen - 4, y, { align: "right" })
-
-            y += 7
-            pdf.setFont("helvetica", "normal")
-            pdf.setFontSize(9)
-            pdf.setTextColor(54, 65, 99)
-            pdf.text(`${item.cantidad_kg} ${formatearTipoStock(item.tipo_stock, item.cantidad_kg)} x ${formatearPrecio(item.precio_unitario)}/${formatearTipoStock(item.tipo_stock)}`, margen + 4, y)
-            y += 16
-        })
-
-        pdf.setDrawColor(203, 213, 225)
-        pdf.line(margen, y, anchoPagina - margen, y)
-
-        y += 13
-        pdf.setFont("helvetica", "normal")
-        pdf.setFontSize(11)
-        pdf.setTextColor(54, 65, 99)
-        pdf.text("Total", margen, y)
-        pdf.setFontSize(18)
-        pdf.setTextColor(0, 166, 62)
-        pdf.text(formatearPrecio(comprobanteVenta.total), anchoPagina - margen, y, { align: "right" })
-
-        y += 10
-        pdf.setFont("helvetica", "normal")
-        pdf.setFontSize(10)
-        pdf.setTextColor(54, 65, 99)
-        pdf.text(`Pago: ${formatearMetodoPago(comprobanteVenta.metodo_pago)} - ${formatearEstadoPago(comprobanteVenta.estado_pago)}`, margen, y)
-
-        if (comprobanteVenta.estado_pago === "incompleto") {
-            y += 6
-            pdf.text(`Pagado: ${formatearPrecio(comprobanteVenta.monto_pagado)} - Debe: ${formatearPrecio(comprobanteVenta.monto_debe)}`, margen, y)
-        }
-
-        if (comprobanteVenta.observaciones) {
-            y += 10
-            pdf.setFont("helvetica", "normal")
-            pdf.setFontSize(10)
-            pdf.setTextColor(54, 65, 99)
-            pdf.text("Observaciones", margen, y)
-            y += 6
-            pdf.text(pdf.splitTextToSize(comprobanteVenta.observaciones, anchoPagina - margen * 2), margen, y)
-        }
-
-        y += 18
-        pdf.setFont("helvetica", "italic")
-        pdf.setFontSize(9)
-        pdf.setTextColor(74, 85, 121)
-        pdf.text("Gracias por su compra!", anchoPagina / 2, y, { align: "center" })
-
-        pdf.save(`${comprobanteVenta.tipo_documento}-don-jose-${comprobanteVenta.fecha}.pdf`)
-    }
-
     const generarVenta = async () => {
         if (!clienteSeleccionado || carrito.length === 0 || !ventaValida || generandoVenta) return
 
         setGenerandoVenta(true)
 
         try {
-            const fechaVenta = obtenerFechaActual()
-            const fechaHoraVenta = formatearFechaHora(new Date())
-            const itemsVenta = carrito.map((item) => ({ ...item }))
-            const pagoVenta = {
-                estado: estadoPago,
-                estado_label: formatearEstadoPago(estadoPago),
-                metodo: metodoPago,
-                metodo_label: formatearMetodoPago(metodoPago),
-                monto_debe: montoDebe,
-                monto_pagado: montoPagadoNumerico,
+            const { clienteActualizado, comprobante } = await registrarVenta({
+                cliente: clienteSeleccionado,
+                documento,
+                estadoPago,
+                fechaHoraVenta: formatearFechaHora(new Date()),
+                fechaVenta: obtenerFechaActual(),
+                gananciaTotal: totalGanancia,
+                items: carrito,
+                metodoPago,
+                montoDebe,
+                montoPagado: montoPagadoNumerico,
+                observaciones,
                 total: totalVenta,
-            }
-            const comprobanteParaGuardar = {
-                negocio: {
-                    nombre: "Don Jose",
-                    rubro: "Frutos Secos",
-                },
-                cliente: {
-                    id: clienteSeleccionado.id,
-                    nombre: clienteSeleccionado.nombre || "",
-                    telefono: clienteSeleccionado.telefono || "",
-                    email: clienteSeleccionado.email || "",
-                    dni_cuit: clienteSeleccionado.dni_cuit || clienteSeleccionado.dniCuit || "",
-                    direccion: clienteSeleccionado.direccion || "",
-                },
-                fecha: fechaVenta,
-                fecha_hora: fechaHoraVenta,
-                ganancia_total: totalGanancia,
-                items: itemsVenta.map((item) => ({
-                    cantidad_kg: item.cantidad_kg,
-                    costo_unitario: item.costo_unitario,
-                    ganancia: item.ganancia,
-                    id: item.id,
-                    nombre: item.nombre,
-                    precio_unitario: item.precio_unitario,
-                    producto_id: item.producto_id,
-                    subtotal: item.subtotal,
-                    tipo_precio: item.tipo_precio,
-                    tipo_stock: item.tipo_stock,
-                })),
-                pago: pagoVenta,
-                estado_pago: estadoPago,
-                metodo_pago: metodoPago,
-                monto_debe: montoDebe,
-                monto_pagado: montoPagadoNumerico,
-                observaciones: observaciones.trim(),
-                tipo_documento: documento,
-                total: totalVenta,
-            }
-
-            const comprobanteId = await crearDocumento("comprobantes_venta", comprobanteParaGuardar)
-
-            const ventasIds = await Promise.all(itemsVenta.map((item) => crearDocumento("ventas", {
-                cantidad_kg: item.cantidad_kg,
-                cliente: {
-                    id: clienteSeleccionado.id,
-                    nombre: clienteSeleccionado.nombre || "",
-                    dni_cuit: clienteSeleccionado.dni_cuit || clienteSeleccionado.dniCuit || "",
-                    direccion: clienteSeleccionado.direccion || "",
-                },
-                cliente_id: clienteSeleccionado.id,
-                comprobante_id: comprobanteId,
-                costo_unitario: item.costo_unitario,
-                fecha: fechaVenta,
-                fecha_hora: fechaHoraVenta,
-                ganancia: item.ganancia,
-                pago: pagoVenta,
-                estado_pago: estadoPago,
-                metodo_pago: metodoPago,
-                monto_debe: montoDebe,
-                monto_pagado: montoPagadoNumerico,
-                observaciones: observaciones.trim(),
-                precio_unitario: item.precio_unitario,
-                producto: {
-                    id: item.producto_id,
-                    nombre: item.nombre,
-                },
-                producto_id: item.producto_id,
-                producto_nombre: item.nombre,
-                subtotal: item.subtotal,
-                tipo_documento: documento,
-                tipo_precio: item.tipo_precio,
-                tipo_stock: item.tipo_stock,
-            })))
-
-            const comprobanteConIds = {
-                id: comprobanteId,
-                venta_ids: ventasIds,
-                ...comprobanteParaGuardar,
-            }
-            const facturaElectronica = documento === "factura"
-                ? await emitirFacturaElectronica(comprobanteConIds)
-                : null
-            const datosComprobanteActualizado = {
-                id: comprobanteId,
-                venta_ids: ventasIds,
-                ...(facturaElectronica ? { factura_electronica: facturaElectronica } : {}),
-            }
-
-            await actualizarDocumento("comprobantes_venta", comprobanteId, datosComprobanteActualizado)
-
-            const clienteActualizado = {
-                facturacion: Number(clienteSeleccionado.facturacion || 0) + totalVenta,
-                ganancia: Number(clienteSeleccionado.ganancia || 0) + totalGanancia,
-                deuda: Number(clienteSeleccionado.deuda || 0) + montoDebe,
-                ventas: Number(clienteSeleccionado.ventas || 0) + 1,
-            }
-
-            await actualizarDocumento("clientes", clienteSeleccionado.id, clienteActualizado)
+                emitirFacturaElectronica,
+            })
 
             setClientes((clientesActuales) => clientesActuales.map((cliente) => {
                 if (cliente.id !== clienteSeleccionado.id) return cliente
 
-                return {
+                return normalizarCliente({
                     ...cliente,
                     ...clienteActualizado,
-                }
+                })
             }))
 
-            setComprobanteVenta({
-                ...comprobanteConIds,
-                ...(facturaElectronica ? { factura_electronica: facturaElectronica } : {}),
-            })
+            setComprobanteVenta(comprobante)
             setCarrito([])
             setProductoId("")
             setCantidadKg("")
@@ -509,105 +306,7 @@ export const VentaComponent = () => {
         }
     }
 
-    if (comprobanteVenta) {
-        return <section className="ventaComprobantePage">
-            <div className="ventaComprobanteIcono">
-                <FaCheck />
-            </div>
-            <h1>Venta Registrada</h1>
-            <p>{formatearDocumento(comprobanteVenta.tipo_documento)} de Venta</p>
-
-            <article className="ventaComprobanteCard" id="ventaComprobante">
-                <div className="ventaComprobanteMarca">
-                    <h2>Don José</h2>
-                    <p>Frutos Secos</p>
-                    <span>{comprobanteVenta.fecha_hora}</span>
-                </div>
-
-                {
-                    comprobanteVenta.tipo_documento === "factura" && (
-                        <div className={`ventaFacturaElectronica ${comprobanteVenta.factura_electronica?.cae ? "ventaFacturaElectronicaEmitida" : "ventaFacturaElectronicaPendiente"}`}>
-                            <span>Factura electronica</span>
-                            <strong>{comprobanteVenta.factura_electronica?.cae ? "CAE emitido" : "Pendiente"}</strong>
-                            {
-                                comprobanteVenta.factura_electronica?.cae ? (
-                                    <p>CAE: {comprobanteVenta.factura_electronica.cae}</p>
-                                ) : (
-                                    <p>{comprobanteVenta.factura_electronica?.mensaje || "No se recibio CAE."}</p>
-                                )
-                            }
-                        </div>
-                    )
-                }
-
-                <div className="ventaComprobanteCliente">
-                    <span>Cliente</span>
-                    <strong>{comprobanteVenta.cliente.nombre}</strong>
-                    {
-                        comprobanteVenta.cliente.dni_cuit && (
-                            <p>DNI/CUIT: {comprobanteVenta.cliente.dni_cuit}</p>
-                        )
-                    }
-                    {
-                        comprobanteVenta.cliente.direccion && (
-                            <p>Direccion: {comprobanteVenta.cliente.direccion}</p>
-                        )
-                    }
-                </div>
-
-                <div className="ventaComprobanteItems">
-                    {
-                        comprobanteVenta.items.map((item) => (
-                            <div key={item.id} className="ventaComprobanteItem">
-                                <div>
-                                    <p>{item.nombre}</p>
-                                    <span>{item.cantidad_kg} {formatearTipoStock(item.tipo_stock, item.cantidad_kg)} x {formatearPrecio(item.precio_unitario)}/{formatearTipoStock(item.tipo_stock)}</span>
-                                </div>
-                                <strong>{formatearPrecio(item.subtotal)}</strong>
-                            </div>
-                        ))
-                    }
-                </div>
-
-                <div className="ventaComprobanteTotal">
-                    <span>Total</span>
-                    <strong>{formatearPrecio(comprobanteVenta.total)}</strong>
-                </div>
-
-                <div className="ventaComprobantePago">
-                    <span>Pago</span>
-                    <strong>{formatearMetodoPago(comprobanteVenta.metodo_pago)} - {formatearEstadoPago(comprobanteVenta.estado_pago)}</strong>
-                    {
-                        comprobanteVenta.estado_pago === "incompleto" && (
-                            <p>Pagó {formatearPrecio(comprobanteVenta.monto_pagado)} - Debe {formatearPrecio(comprobanteVenta.monto_debe)}</p>
-                        )
-                    }
-                </div>
-
-                {
-                    comprobanteVenta.observaciones && (
-                        <div className="ventaComprobanteObservaciones">
-                            <span>Observaciones</span>
-                            <p>{comprobanteVenta.observaciones}</p>
-                        </div>
-                    )
-                }
-
-                <p className="ventaComprobanteGracias">¡Gracias por su compra!</p>
-            </article>
-
-            <div className="ventaComprobanteAcciones">
-                <button type="button" onClick={descargarPDF}>
-                    <FaDownload />
-                    Descargar PDF
-                </button>
-                <Link href="/">
-                    <FaHome />
-                    Volver al Inicio
-                </Link>
-            </div>
-        </section>
-    }
+    if (comprobanteVenta) return <VentaComprobante comprobanteVenta={comprobanteVenta} />
 
     return <section>
         <NavComponent bgColor="#00A63E" >
@@ -680,7 +379,10 @@ export const VentaComponent = () => {
                         </article>
                     ) : (
                         <>
-                            <select value={clienteId} onChange={(e) => setClienteId(e.target.value)}>
+                            <select value={clienteId} onChange={(e) => {
+                                setClienteId(e.target.value)
+                                setCreandoCliente(false)
+                            }}>
                                 {
                                     clientes.map((cliente) => (
                                         <option key={cliente.id} value={cliente.id}>{cliente.nombre}</option>
@@ -692,13 +394,52 @@ export const VentaComponent = () => {
                                 Crear Nuevo Cliente
                             </button>
                             {
-                                clienteSeleccionado && !dniCuitClienteValido && (
-                                    <p className="ventaClienteRequerido">El cliente necesita DNI/CUIT para generar la venta.</p>
-                                )
-                            }
-                            {
-                                clienteSeleccionado && !direccionClienteValida && (
-                                    <p className="ventaClienteRequerido">El cliente necesita direccion para generar la venta.</p>
+                                clienteSeleccionado && (!dniCuitClienteValido || !direccionClienteValida) && (
+                                    <article className="ventaCompletarCliente">
+                                        <div>
+                                            <p>Completar datos del cliente</p>
+                                            <span>Estos datos son necesarios para generar la venta.</span>
+                                        </div>
+                                        <form onSubmit={(e) => {
+                                            e.preventDefault()
+                                            guardarDatosClientePendientes()
+                                        }}>
+                                            {
+                                                !dniCuitClienteValido && (
+                                                    <input
+                                                        type="text"
+                                                        value={datosClientePendientes.dni_cuit}
+                                                        onChange={(e) => setDatosClientePendientes((datosActuales) => ({
+                                                            ...datosActuales,
+                                                            dni_cuit: e.target.value,
+                                                        }))}
+                                                        placeholder="DNI/CUIT"
+                                                        aria-label="DNI o CUIT del cliente"
+                                                        required
+                                                    />
+                                                )
+                                            }
+                                            {
+                                                !direccionClienteValida && (
+                                                    <input
+                                                        type="text"
+                                                        value={datosClientePendientes.direccion}
+                                                        onChange={(e) => setDatosClientePendientes((datosActuales) => ({
+                                                            ...datosActuales,
+                                                            direccion: e.target.value,
+                                                        }))}
+                                                        placeholder="Direccion"
+                                                        aria-label="Direccion del cliente"
+                                                        required
+                                                    />
+                                                )
+                                            }
+                                            <button type="submit" disabled={!datosClientePendientes.dni_cuit.trim() || !datosClientePendientes.direccion.trim()}>
+                                                <FaCheck />
+                                                Guardar datos
+                                            </button>
+                                        </form>
+                                    </article>
                                 )
                             }
                         </>

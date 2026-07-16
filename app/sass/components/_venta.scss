@@ -59,6 +59,77 @@
     font-weight: 700;
 }
 
+.ventaCompletarCliente {
+    border: 2px solid #86EFAC;
+    border-radius: 14px;
+    background-color: #F0FDF4;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+
+    >div {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+
+        p {
+            color: #0F172A;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        span {
+            color: #4A5579;
+            font-size: 14px;
+        }
+    }
+
+    form {
+        display: grid;
+        grid-template-columns: 1fr 1fr auto;
+        gap: 8px;
+
+        input {
+            width: 100%;
+            min-height: 52px;
+            border: 2px solid #4ADE80;
+            border-radius: 9px;
+            background-color: #fff;
+            color: #0F172A;
+            font-size: 16px;
+            outline: none;
+            padding: 0 12px;
+
+            &:focus {
+                border-color: #00C950;
+            }
+        }
+
+        button {
+            align-items: center;
+            border: 0;
+            border-radius: 9px;
+            background-color: #00A63E;
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            font-size: 16px;
+            font-weight: 700;
+            gap: 8px;
+            justify-content: center;
+            min-height: 52px;
+            padding: 0 16px;
+            white-space: nowrap;
+
+            &:disabled {
+                background-color: #94A3B8;
+                cursor: not-allowed;
+            }
+        }
+    }
+}
+
 .ventaCrearCliente,
 .ventaAgregarProducto {
     width: 100%;
@@ -757,5 +828,15 @@
 
     button {
         background-color: #00A63E;
+    }
+}
+
+@media (max-width: 760px) {
+    .ventaCompletarCliente form {
+        grid-template-columns: 1fr;
+
+        button {
+            width: 100%;
+        }
     }
 }

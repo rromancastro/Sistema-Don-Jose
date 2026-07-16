@@ -116,7 +116,7 @@ const postSoap = async ({ action, body, url }) => {
 }
 
 const crearArchivoTemporal = (nombre, contenido) => {
-    const ruta = path.join(os.tmpdir(), `arca-${process.pid}-${Date.now()}-${nombre}`)
+    const ruta = path.join(/*turbopackIgnore: true*/ os.tmpdir(), `arca-${process.pid}-${Date.now()}-${nombre}`)
 
     fs.writeFileSync(ruta, contenido)
 
@@ -139,7 +139,7 @@ const firmarTra = ({ cert, key, opensslPath, service }) => {
     const traPath = crearArchivoTemporal("tra.xml", traXml)
     const certPath = crearArchivoTemporal("cert.pem", cert)
     const keyPath = crearArchivoTemporal("key.pem", key)
-    const cmsPath = path.join(os.tmpdir(), `arca-${process.pid}-${Date.now()}-tra.cms`)
+    const cmsPath = path.join(/*turbopackIgnore: true*/ os.tmpdir(), `arca-${process.pid}-${Date.now()}-tra.cms`)
 
     try {
         const resultado = spawnSync(opensslPath, [

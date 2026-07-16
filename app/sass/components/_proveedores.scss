@@ -1,90 +1,336 @@
 #proveedoresContainer {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 14px;
     padding: var(--space-page);
 }
 
-.proveedorCard {
+.proveedorSearch {
+    align-items: center;
+    border: 2px solid #E2E8F0;
+    border-radius: 10px;
+    display: flex;
+    gap: 10px;
+    height: 52px;
+    padding: 0 12px;
+
+    svg {
+        color: #94A3B8;
+        font-size: 20px;
+        flex-shrink: 0;
+    }
+
+    input {
+        border: 0;
+        color: #0F172A;
+        font-size: 16px;
+        height: 100%;
+        outline: none;
+        width: 100%;
+
+        &::placeholder {
+            color: #64748B;
+        }
+    }
+}
+
+.proveedoresGrid {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    padding: 24px;
-    border: 3px solid #BEDBFF;
-    position: relative;
+    gap: 10px;
+}
 
-    >p {
-        &:nth-child(1) {
-            font-size: 24px;
-            color: #000;
+.proveedoresFila {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.proveedorResumenCard {
+    border: 2px solid #BEDBFF;
+    border-radius: 12px;
+    background-color: #fff;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-height: 108px;
+    padding: 14px 40px 14px 12px;
+    text-align: left;
+
+    strong {
+        color: #020617;
+        font-size: 15px;
+        font-weight: 800;
+    }
+
+    span {
+        color: #364153;
+        font-size: 13px;
+    }
+
+    span:nth-of-type(2) {
+        margin-top: 6px;
+    }
+
+    p {
+        color: #155DFC;
+        font-size: 15px;
+        font-weight: 800;
+    }
+}
+
+.proveedorResumenCard:hover,
+.proveedorResumenCardActiva {
+    background-color: #EFF6FF;
+    border-color: #60A5FA;
+}
+
+.proveedorComprasBadge {
+    align-items: center;
+    border-radius: 999px;
+    background-color: #DBEAFE;
+    color: #155DFC !important;
+    display: flex;
+    font-size: 12px !important;
+    font-weight: 800;
+    height: 20px;
+    justify-content: center;
+    position: absolute;
+    right: 14px;
+    top: 13px;
+    width: 20px;
+}
+
+.proveedorDetalleCard {
+    border: 2px solid #60A5FA;
+    border-radius: 14px;
+    background-color: #EFF6FF;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    overflow: hidden;
+    padding: 16px;
+}
+
+.proveedorDetalleEnGrid {
+    grid-column: 1 / -1;
+}
+
+.proveedorDetalleHeader {
+    align-items: flex-start;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+
+    h2 {
+        color: #020617;
+        font-size: 20px;
+        font-weight: 500;
+        margin-bottom: 4px;
+    }
+
+    p {
+        color: #364153;
+        font-size: 14px;
+    }
+}
+
+.proveedorActions {
+    display: flex;
+    gap: 16px;
+
+    button {
+        border: 0;
+        background-color: transparent;
+        cursor: pointer;
+        display: flex;
+        padding: 4px;
+
+        &:first-child {
+            color: #155DFC;
+        }
+
+        &:last-child {
+            color: #ED0007;
+        }
+    }
+
+    svg {
+        font-size: 18px;
+    }
+}
+
+.proveedorDatosGrid,
+.proveedorStats {
+    display: grid;
+    gap: 8px;
+}
+
+.proveedorDatosGrid {
+    grid-template-columns: repeat(4, 1fr);
+
+    p {
+        background-color: #fff;
+        border-radius: 10px;
+        color: #4A5579;
+        display: flex;
+        flex-direction: column;
+        font-size: 12px;
+        gap: 4px;
+        min-width: 0;
+        padding: 12px;
+
+        span {
+            color: #020617;
+            font-size: 14px;
+            font-weight: 700;
+            overflow-wrap: anywhere;
+        }
+    }
+}
+
+.proveedorStats {
+    grid-template-columns: repeat(3, 1fr);
+
+    p {
+        align-items: center;
+        background-color: #fff;
+        border-radius: 10px;
+        color: #4A5579;
+        display: flex;
+        flex-direction: column;
+        font-size: 12px;
+        gap: 4px;
+        justify-content: center;
+        min-height: 52px;
+        padding: 8px;
+        text-align: center;
+
+        span {
+            color: #020617;
+            font-size: 15px;
             font-weight: 500;
         }
 
         &:nth-child(2) {
-            color: #4A5579;
-        }
-        
-    }
-
-    .proveedorStats {
-        display: flex;
-        width: 100%;
-        justify-content: space-between;
-        max-width: 1200px;
-
-        p {
-            display: flex;
-            flex-direction: column;
-            color: #4A5579;
-            gap: 4px;
+            background-color: #F8FAFC;
 
             span {
-                color: #000;
+                color: #0F172A;
             }
         }
-    }
 
-    .proveedorActions {
-        position: absolute;
-        top: 24px;
-        right: 32px;
-        display: flex;
-        gap: 34px;
+        &:nth-child(3) {
+            background-color: #DBEAFE;
 
-        button {
-            border: 0;
-            background-color: transparent;
-            cursor: pointer;
-            display: flex;
-            color: inherit;
-            padding: 0;
-
-            &:first-child {
+            span {
                 color: #155DFC;
             }
-
-            &:last-child {
-                color: red;
-            }
-        }
-
-        svg {
-            font-size: 24px;
         }
     }
 }
 
-.proveedorCardEditando {
+.proveedorCompras {
+    border-top: 1px solid #BFDBFE;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 0 -16px -16px;
     padding: 16px;
-    border: 2px solid #BEDBFF;
-    border-radius: 12px;
+
+    h3 {
+        color: #0F172A;
+        font-size: 16px;
+        font-weight: 800;
+    }
+}
+
+.proveedorComprasVacio,
+.proveedoresVacio {
+    color: #64748B;
+    font-size: 14px;
+    padding: 24px 0;
+    text-align: center;
+}
+
+.proveedorCompraItem {
+    border: 0;
+    border-radius: 10px;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+
+    p {
+        color: #020617;
+        font-size: 14px;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+
+    span {
+        color: #64748B;
+        display: block;
+        font-size: 13px;
+    }
+
+    strong {
+        color: #155DFC;
+        display: block;
+        font-size: 15px;
+        font-weight: 500;
+        text-align: right;
+    }
+}
+
+.proveedorCompraHeader {
+    align-items: flex-start;
+    border-bottom: 1px solid #E2E8F0;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    padding-bottom: 10px;
+}
+
+.proveedorCompraDetalle {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+
+    p {
+        border-radius: 8px;
+        background-color: #F8FAFC;
+        color: #4A5579;
+        display: flex;
+        flex-direction: column;
+        font-size: 12px;
+        font-weight: 500;
+        gap: 4px;
+        margin: 0;
+        padding: 10px;
+
+        span {
+            color: #020617;
+            font-size: 14px;
+            font-weight: 700;
+        }
+    }
+}
+
+.proveedorCardEditando,
+.proveedorCardConfirmando {
+    padding: 16px;
+}
+
+.proveedorCardEditando {
+    border-color: #BEDBFF;
     background-color: #EFF6FF;
 }
 
 .proveedorCardConfirmando {
-    padding: 16px;
-    border: 2px solid #FECACA;
-    border-radius: 12px;
+    border-color: #FECACA;
     background-color: #FEF2F2;
 }
 
@@ -97,50 +343,51 @@
     input {
         width: 100%;
         height: 52px;
-        border: 3px solid #86BEFF;
-        border-radius: 8px;
-        background-color: #EFF6FF;
+        border: 2px solid #86BEFF;
+        border-radius: 9px;
+        background-color: #fff;
         color: #000;
         font-size: 16px;
         outline: none;
         padding: 0 12px;
 
         &:focus {
-            border-color: #60A5FA;
+            border-color: #155DFC;
         }
     }
 }
 
-.proveedorEditActions {
+.proveedorEditActions,
+.proveedorDeleteActions {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 8px;
 
     button {
+        align-items: center;
         border: 0;
         border-radius: 8px;
         color: #fff;
         cursor: pointer;
-        font-size: 20px;
-        font-weight: 500;
         display: flex;
-        align-items: center;
-        padding: 16px;
-        justify-content: center;
+        font-size: 18px;
+        font-weight: 700;
         gap: 10px;
-
-        &:first-child {
-            background-color: #00A63E;
-        }
-
-        &:last-child {
-            background-color: #ED0007;
-        }
-
-        svg {
-            font-size: 16px;
-        }
+        justify-content: center;
+        min-height: 50px;
+        padding: 12px;
     }
+}
+
+.proveedorEditActions button:first-child {
+    background-color: #00A63E;
+}
+.proveedorEditActions button:last-child,
+.proveedorDeleteActions button:first-child {
+    background-color: #ED0007;
+}
+.proveedorDeleteActions button:last-child {
+    background-color: #4A5579;
 }
 
 .proveedorDeleteConfirm {
@@ -156,34 +403,33 @@
     }
 }
 
-.proveedorDeleteActions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
+@media (max-width: 820px) {
+    .proveedoresFila,
+    .proveedorDatosGrid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
 
-    button {
-        border: 0;
-        border-radius: 8px;
-        color: #fff;
-        cursor: pointer;
-        font-size: 20px;
-        font-weight: 500;
-        display: flex;
-        align-items: center;
-        padding: 16px;
-        justify-content: center;
-        gap: 10px;
+@media (max-width: 640px) {
+    .proveedoresFila,
+    .proveedorDatosGrid,
+    .proveedorStats,
+    .proveedorCompraDetalle,
+    .proveedorCompraHeader {
+        grid-template-columns: 1fr;
+    }
 
-        &:first-child {
-            background-color: #ED0007;
-        }
+    .proveedorDetalleHeader {
+        flex-direction: column;
+    }
 
-        &:last-child {
-            background-color: #4A5579;
-        }
+    .proveedorActions {
+        justify-content: flex-end;
+        width: 100%;
+    }
 
-        svg {
-            font-size: 16px;
-        }
+    .proveedorCompraItem strong,
+    .proveedorCompraHeader >div:last-child {
+        text-align: left;
     }
 }

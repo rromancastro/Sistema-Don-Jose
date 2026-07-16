@@ -5,7 +5,17 @@ import { useEffect, useMemo, useState } from "react"
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa"
 import { FiDollarSign, FiSearch } from "react-icons/fi"
 import { IoCartOutline } from "react-icons/io5"
+import { formatearFecha } from "../lib/fechas"
 import { obtenerDocumentos } from "../lib/firebase"
+import {
+    formatearDineroConDecimales as formatearPrecio,
+    formatearNumero,
+    formatearTipoStock,
+    normalizarCompra,
+    normalizarComprobanteVenta,
+    normalizarLista,
+    normalizarProveedor,
+} from "../lib/normalizadores"
 import { NavComponent } from "./NavComponent"
 
 const FILTROS = {
@@ -15,29 +25,6 @@ const FILTROS = {
     VENTAS: "ventas",
 }
 
-const formatearPrecio = (valor) => `$${Number(valor || 0).toLocaleString("es-AR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-})}`
-const formatearNumero = (valor) => Number(valor || 0).toLocaleString("es-AR", {
-    maximumFractionDigits: 2,
-})
-const formatearTipoStock = (tipoStock, cantidad = 1) => {
-    if (tipoStock === "unidad") return cantidad === 1 ? "unidad" : "unidades"
-
-    return "kg"
-}
-const formatearFecha = (fecha) => {
-    if (!fecha) return ""
-
-    if (/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
-        const [anio, mes, dia] = fecha.split("-")
-
-        return `${dia}/${mes}/${anio}`
-    }
-
-    return String(fecha).split(" ")[0]
-}
 const obtenerOrdenFecha = (item) => {
     const fecha = item.fecha || ""
 
@@ -74,10 +61,10 @@ export const HistorialComponent = () => {
                 obtenerDocumentos("proveedores"),
             ])
 
-            setVentas(ventasData)
-            setCompras(comprasData)
+            setVentas(normalizarLista(ventasData, normalizarComprobanteVenta))
+            setCompras(normalizarLista(comprasData, normalizarCompra))
             setTransformaciones(transformacionesData)
-            setProveedores(proveedoresData)
+            setProveedores(normalizarLista(proveedoresData, normalizarProveedor))
         }
 
         cargarHistorial()

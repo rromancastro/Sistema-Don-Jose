@@ -7,7 +7,18 @@ import { FiCalendar, FiChevronLeft, FiChevronRight, FiDollarSign, FiShoppingCart
 import { GoGraph } from "react-icons/go"
 import { IoRibbonOutline } from "react-icons/io5"
 import { LuTarget } from "react-icons/lu"
+import { crearFechaLocal, DIAS_SEMANA_CORTOS, MESES_CORTOS, normalizarFecha, obtenerDiasEntre, obtenerFechaISO } from "../lib/fechas"
 import { obtenerDocumentos } from "../lib/firebase"
+import {
+    formatearDinero,
+    formatearDineroConDecimales as formatearPrecio,
+    formatearNumero,
+    normalizarCliente,
+    normalizarCompra,
+    normalizarComprobanteVenta,
+    normalizarLista,
+    normalizarProveedor,
+} from "../lib/normalizadores"
 import { NavComponent } from "./NavComponent"
 
 const PERIODOS = {
@@ -15,54 +26,7 @@ const PERIODOS = {
     MES: "mes",
     ANIO: "anio",
 }
-const MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
-const DIAS_SEMANA = ["D", "L", "M", "M", "J", "V", "S"]
-const MS_DIA = 24 * 60 * 60 * 1000
-
-const formatearPrecio = (valor) => `$${Number(valor || 0).toLocaleString("es-AR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-})}`
-const formatearPrecioSimple = (valor) => `$${Number(valor || 0).toLocaleString("es-AR", {
-    maximumFractionDigits: 0,
-})}`
-const formatearNumero = (valor) => Number(valor || 0).toLocaleString("es-AR", {
-    maximumFractionDigits: 2,
-})
-const obtenerFechaISO = (fecha) => {
-    const anio = fecha.getFullYear()
-    const mes = String(fecha.getMonth() + 1).padStart(2, "0")
-    const dia = String(fecha.getDate()).padStart(2, "0")
-
-    return `${anio}-${mes}-${dia}`
-}
-const normalizarFecha = (valor) => {
-    if (!valor) return ""
-
-    const texto = String(valor)
-
-    if (/^\d{4}-\d{2}-\d{2}/.test(texto)) return texto.slice(0, 10)
-
-    const coincidencia = texto.match(/^(\d{2})\/(\d{2})\/(\d{4})/)
-    if (coincidencia) {
-        const [, dia, mes, anio] = coincidencia
-
-        return `${anio}-${mes}-${dia}`
-    }
-
-    return ""
-}
-const crearFechaLocal = (fechaISO) => {
-    const [anio, mes, dia] = fechaISO.split("-").map(Number)
-
-    return new Date(anio, mes - 1, dia)
-}
-const sumarDias = (fechaISO, dias) => {
-    const fecha = crearFechaLocal(fechaISO)
-    fecha.setDate(fecha.getDate() + dias)
-
-    return obtenerFechaISO(fecha)
-}
+const formatearPrecioSimple = (valor) => formatearDinero(valor, { maximumFractionDigits: 0 })
 const obtenerRangoPeriodo = (periodo) => {
     const hoy = new Date()
     const fin = obtenerFechaISO(hoy)
@@ -81,13 +45,6 @@ const obtenerRangoPeriodo = (periodo) => {
         hasta: fin,
     }
 }
-const obtenerDiasEntre = (desde, hasta) => {
-    const inicio = crearFechaLocal(desde).getTime()
-    const fin = crearFechaLocal(hasta).getTime()
-    const cantidad = Math.max(Math.round((fin - inicio) / MS_DIA), 0) + 1
-
-    return Array.from({ length: cantidad }, (_, index) => sumarDias(desde, index))
-}
 const formatearEtiquetaFecha = (fechaISO) => {
     const [, mes, dia] = fechaISO.split("-")
 
@@ -98,7 +55,7 @@ const formatearFechaResumen = (fechaISO) => {
 
     const fecha = crearFechaLocal(fechaISO)
 
-    return `${String(fecha.getDate()).padStart(2, "0")} ${MESES[fecha.getMonth()]} ${fecha.getFullYear()}`
+    return `${String(fecha.getDate()).padStart(2, "0")} ${MESES_CORTOS[fecha.getMonth()]} ${fecha.getFullYear()}`
 }
 const estaEnRango = (fecha, desde, hasta) => {
     const fechaNormalizada = normalizarFecha(fecha)
@@ -141,7 +98,7 @@ const ReporteCalendario = ({ titulo, fechaSeleccionada, mesVisible, onCambiarMes
             </button>
             <div>
                 <span>{titulo}</span>
-                <p>{MESES[mesVisible.getMonth()]} {mesVisible.getFullYear()}</p>
+                <p>{MESES_CORTOS[mesVisible.getMonth()]} {mesVisible.getFullYear()}</p>
             </div>
             <button type="button" onClick={() => onCambiarMes(1)} aria-label={`Mes siguiente ${titulo}`}>
                 <FiChevronRight />
@@ -150,7 +107,7 @@ const ReporteCalendario = ({ titulo, fechaSeleccionada, mesVisible, onCambiarMes
 
         <div className="reporteCalendarioGrid">
             {
-                DIAS_SEMANA.map((dia, index) => (
+                DIAS_SEMANA_CORTOS.map((dia, index) => (
                     <span key={`${dia}-${index}`} className="reporteCalendarioDiaSemana">{dia}</span>
                 ))
             }
@@ -273,11 +230,11 @@ export const ReportesComponent = () => {
                 obtenerDocumentos("proveedores"),
             ])
 
-            setVentas(ventasData)
-            setCompras(comprasData)
+            setVentas(normalizarLista(ventasData, normalizarComprobanteVenta))
+            setCompras(normalizarLista(comprasData, normalizarCompra))
             setTransformaciones(transformacionesData)
-            setClientes(clientesData)
-            setProveedores(proveedoresData)
+            setClientes(normalizarLista(clientesData, normalizarCliente))
+            setProveedores(normalizarLista(proveedoresData, normalizarProveedor))
             setCargando(false)
         }
 

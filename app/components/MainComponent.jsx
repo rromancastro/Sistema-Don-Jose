@@ -2,44 +2,40 @@
 
 import { IoCartOutline } from "react-icons/io5"
 import { NavComponent } from "./NavComponent"
-import { FiBell, FiBox, FiChevronLeft, FiChevronRight, FiClipboard, FiDollarSign, FiEdit3, FiSearch, FiUsers } from "react-icons/fi"
+import { FiBell, FiBox, FiChevronLeft, FiChevronRight, FiClipboard, FiDatabase, FiDollarSign, FiDownload, FiEdit3, FiSearch, FiUsers } from "react-icons/fi"
 import { FaArrowRight, FaRegChartBar, FaUserCheck } from "react-icons/fa"
 import { GoHistory, GoPlus, GoTrash } from "react-icons/go"
 import { LuFileSpreadsheet } from "react-icons/lu"
 import Link from "next/link"
 import { useEffect, useMemo, useState } from "react"
+import { DIAS_SEMANA_CORTOS, formatearFechaCalendario, MESES_CORTOS, obtenerFechaActual, obtenerFechaISO } from "../lib/fechas"
 import { actualizarDocumento, crearDocumento, eliminarDocumento, obtenerDocumentos } from "../lib/firebase"
+import {
+    formatearCantidad,
+    formatearDineroConDecimales as formatearPrecio,
+    normalizarCompra,
+    normalizarComprobanteVenta,
+    normalizarLista,
+    normalizarProducto,
+    obtenerStockProducto,
+} from "../lib/normalizadores"
 
 const CATEGORIAS_FRUTA_FRESCA = ["Fruta Fresca", "Fruta Fresta"]
-const MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
-const DIAS_SEMANA = ["D", "L", "M", "M", "J", "V", "S"]
+const COLECCIONES_BACKUP = [
+    "clientes",
+    "proveedores",
+    "productos",
+    "compras",
+    "ventas",
+    "comprobantes_venta",
+    "presupuestos",
+    "transformaciones",
+    "recordatorios",
+    "notas",
+]
 const notaVacia = {
     titulo: "",
     descripcion: "",
-}
-
-const obtenerStockProducto = (producto) => Number(producto.stock ?? producto.stock_kg ?? producto.cantidad_kg ?? 0)
-const formatearPrecio = (valor) => `$${Number(valor || 0).toLocaleString("es-AR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-})}`
-const formatearCantidad = (valor) => `${Number(valor || 0).toLocaleString("es-AR", {
-    maximumFractionDigits: 2,
-})} kg`
-const obtenerFechaActual = () => {
-    const ahora = new Date()
-    return formatearFechaISO(ahora)
-}
-const formatearFechaISO = (fecha) => {
-    const anio = fecha.getFullYear()
-    const mes = String(fecha.getMonth() + 1).padStart(2, "0")
-    const dia = String(fecha.getDate()).padStart(2, "0")
-
-    return `${anio}-${mes}-${dia}`
-}
-const formatearFechaCalendario = (fechaISO) => {
-    const [anio, mes, dia] = fechaISO.split("-")
-    return `${dia}/${mes}/${anio}`
 }
 
 export const MainComponent = () => {
@@ -61,6 +57,7 @@ export const MainComponent = () => {
     const [notaEditandoId, setNotaEditandoId] = useState(null)
     const [nuevaNota, setNuevaNota] = useState(notaVacia)
     const [notaEditada, setNotaEditada] = useState(notaVacia)
+    const [exportandoBackup, setExportandoBackup] = useState(false)
 
     useEffect(() => {
         const cargarDatos = async () => {
@@ -72,9 +69,9 @@ export const MainComponent = () => {
                 obtenerDocumentos("notas"),
             ])
 
-            setComprobantesVenta(comprobantesData)
-            setCompras(comprasData)
-            setProductos(productosData)
+            setComprobantesVenta(normalizarLista(comprobantesData, normalizarComprobanteVenta))
+            setCompras(normalizarLista(comprasData, normalizarCompra))
+            setProductos(normalizarLista(productosData, normalizarProducto))
             setRecordatorios(recordatoriosData)
             setNotas(notasData)
         }
@@ -116,7 +113,7 @@ export const MainComponent = () => {
         }))
         const dias = Array.from({ length: diasDelMes }, (_, index) => {
             const fecha = new Date(anio, mes, index + 1)
-            const fechaISO = formatearFechaISO(fecha)
+            const fechaISO = obtenerFechaISO(fecha)
 
             return {
                 dia: index + 1,
@@ -251,6 +248,41 @@ export const MainComponent = () => {
         }
     }
 
+    const descargarBackup = async () => {
+        if (exportandoBackup) return
+
+        setExportandoBackup(true)
+
+        try {
+            const datosColecciones = await Promise.all(COLECCIONES_BACKUP.map(async (coleccion) => {
+                const documentos = await obtenerDocumentos(coleccion)
+
+                return [coleccion, documentos]
+            }))
+            const fechaExportacion = new Date().toISOString()
+            const backup = {
+                exportado_en: fechaExportacion,
+                origen: "don-jose",
+                formato: "firestore-json-backup-v1",
+                colecciones: Object.fromEntries(datosColecciones),
+            }
+            const archivo = new Blob([JSON.stringify(backup, null, 2)], {
+                type: "application/json",
+            })
+            const url = URL.createObjectURL(archivo)
+            const link = document.createElement("a")
+
+            link.href = url
+            link.download = `backup-don-jose-${fechaExportacion.slice(0, 10)}.json`
+            document.body.appendChild(link)
+            link.click()
+            link.remove()
+            URL.revokeObjectURL(url)
+        } finally {
+            setExportandoBackup(false)
+        }
+    }
+
     return <section>
         <NavComponent bgColor="#7F22FE" main={true}>
             <img src={'/logo-blanco.png'} alt="logo" />
@@ -281,7 +313,7 @@ export const MainComponent = () => {
                         <button type="button" onClick={() => cambiarMes(-1)} aria-label="Mes anterior">
                             <FiChevronLeft />
                         </button>
-                        <p>{MESES[mesVisible.getMonth()]} {mesVisible.getFullYear()}</p>
+                        <p>{MESES_CORTOS[mesVisible.getMonth()]} {mesVisible.getFullYear()}</p>
                         <button type="button" onClick={() => cambiarMes(1)} aria-label="Mes siguiente">
                             <FiChevronRight />
                         </button>
@@ -289,7 +321,7 @@ export const MainComponent = () => {
 
                     <div className="mainCalendarioGrid">
                         {
-                            DIAS_SEMANA.map((dia, index) => (
+                            DIAS_SEMANA_CORTOS.map((dia, index) => (
                                 <span key={`${dia}-${index}`} className="mainCalendarioDiaSemana">{dia}</span>
                             ))
                         }
@@ -488,14 +520,14 @@ export const MainComponent = () => {
                         <FiBox />
                     </div>
                     <p>Deshidratado</p>
-                    <p>{formatearCantidad(resumen.stockDeshidratado)}</p>
+                    <p>{formatearCantidad(resumen.stockDeshidratado, "kg")}</p>
                 </Link>
                 <Link href={'/stock'} className="mainInfoCard boxShadow animClick">
                     <div className="bgColorAzul">
                         <FiBox />
                     </div>
                     <p>Fruta Fresca</p>
-                    <p>{formatearCantidad(resumen.stockFresco)}</p>
+                    <p>{formatearCantidad(resumen.stockFresco, "kg")}</p>
                 </Link>
             </div>
         </div>
@@ -555,6 +587,20 @@ export const MainComponent = () => {
                     <p>Reportes</p>
                 </Link>
             </div>
+        </div>
+
+        <div className="mainBackupContainer">
+            <div>
+                <FiDatabase />
+                <div>
+                    <h2>Backup de datos</h2>
+                    <p>Descarga un archivo JSON con la informacion actual de la base de datos.</p>
+                </div>
+            </div>
+            <button type="button" onClick={descargarBackup} disabled={exportandoBackup}>
+                <FiDownload />
+                {exportandoBackup ? "Preparando backup..." : "Descargar backup"}
+            </button>
         </div>
     </section>
 }

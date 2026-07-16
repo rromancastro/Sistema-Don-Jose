@@ -3,38 +3,15 @@
 import Link from "next/link"
 import { useEffect, useMemo, useState } from "react"
 import { FaArrowLeft, FaArrowRight, FaCheck } from "react-icons/fa"
+import { obtenerFechaHoraActual } from "../lib/fechas"
 import { actualizarDocumento, crearDocumento, obtenerDocumentos } from "../lib/firebase"
+import { formatearNumero, formatearTipoStock, normalizarLista, normalizarProducto, obtenerNombreProducto, obtenerStockProducto, obtenerTipoStock } from "../lib/normalizadores"
 import { NavComponent } from "./NavComponent"
 
 const CATEGORIAS_FRUTA_FRESCA = ["Fruta Fresca", "Fruta Fresta"]
 const ESTADO_PENDIENTE = "pendiente"
 const ESTADO_COMPLETADA = "completada"
 
-const obtenerNombreProducto = (producto) => producto.nombre || producto.producto || "Producto sin nombre"
-const obtenerStockProducto = (producto) => Number(producto.stock ?? producto.stock_kg ?? producto.cantidad_kg ?? 0)
-const obtenerTipoStock = (producto) => producto.tipo_stock || "kg"
-const formatearNumero = (valor) => Number(valor || 0).toLocaleString("es-AR", {
-    maximumFractionDigits: 2,
-})
-const formatearTipoStock = (tipoStock, cantidad = 1) => {
-    if (tipoStock === "unidad") return cantidad === 1 ? "unidad" : "unidades"
-
-    return "kg"
-}
-const obtenerFechaHoraActual = () => {
-    const ahora = new Date()
-    const anio = ahora.getFullYear()
-    const mes = String(ahora.getMonth() + 1).padStart(2, "0")
-    const dia = String(ahora.getDate()).padStart(2, "0")
-    const hora = String(ahora.getHours()).padStart(2, "0")
-    const minutos = String(ahora.getMinutes()).padStart(2, "0")
-
-    return {
-        fecha: `${anio}-${mes}-${dia}`,
-        hora: `${hora}:${minutos}`,
-        fecha_hora: `${dia}/${mes}/${anio} ${hora}:${minutos}`,
-    }
-}
 const esPendiente = (estado) => estado === ESTADO_PENDIENTE || estado === "prendiente"
 
 export const TransformacionesComponent = () => {
@@ -53,13 +30,14 @@ export const TransformacionesComponent = () => {
                 obtenerDocumentos("transformaciones"),
             ])
 
-            const productosMateriaPrima = productosData.filter((producto) => CATEGORIAS_FRUTA_FRESCA.includes(producto.categoria))
-            const productosFinales = productosData.filter((producto) => !CATEGORIAS_FRUTA_FRESCA.includes(producto.categoria))
+            const productosNormalizados = normalizarLista(productosData, normalizarProducto)
+            const productosMateriaPrima = productosNormalizados.filter((producto) => CATEGORIAS_FRUTA_FRESCA.includes(producto.categoria))
+            const productosFinales = productosNormalizados.filter((producto) => !CATEGORIAS_FRUTA_FRESCA.includes(producto.categoria))
 
-            setProductos(productosData)
+            setProductos(productosNormalizados)
             setTransformaciones(transformacionesData.sort((a, b) => String(b.fecha_hora || "").localeCompare(String(a.fecha_hora || ""))))
-            setMateriaPrimaId(productosMateriaPrima[0]?.id || productosData[0]?.id || "")
-            setProductoFinalId(productosFinales[0]?.id || productosData[0]?.id || "")
+            setMateriaPrimaId(productosMateriaPrima[0]?.id || productosNormalizados[0]?.id || "")
+            setProductoFinalId(productosFinales[0]?.id || productosNormalizados[0]?.id || "")
         }
 
         cargarDatos()
@@ -153,10 +131,10 @@ export const TransformacionesComponent = () => {
         setProductos((productosActuales) => productosActuales.map((producto) => {
             if (producto.id !== materiaPrimaSeleccionada.id) return producto
 
-            return {
+            return normalizarProducto({
                 ...producto,
                 stock: stockMateriaPrimaActualizado,
-            }
+            })
         }))
         setTransformaciones((transformacionesActuales) => [
             {
@@ -224,10 +202,10 @@ export const TransformacionesComponent = () => {
         setProductos((productosActuales) => productosActuales.map((producto) => {
             if (producto.id !== productoFinal.id) return producto
 
-            return {
+            return normalizarProducto({
                 ...producto,
                 stock: stockFinalActualizado,
-            }
+            })
         }))
         setTransformaciones((transformacionesActuales) => transformacionesActuales.map((item) => {
             if (item.id !== transformacion.id) return item

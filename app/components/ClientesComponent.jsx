@@ -7,6 +7,16 @@ import { FiSearch } from "react-icons/fi"
 import { GoPencil, GoTrash } from "react-icons/go"
 import { AiOutlinePlus } from "react-icons/ai"
 import { actualizarDocumento, crearDocumento, eliminarDocumento, obtenerDocumentos } from "../lib/firebase"
+import {
+    formatearCantidad,
+    formatearDinero,
+    formatearEstadoPago,
+    formatearMetodoPago,
+    formatearTipoStock,
+    normalizarCliente,
+    normalizarComprobanteVenta,
+    normalizarLista,
+} from "../lib/normalizadores"
 import { NavComponent } from "./NavComponent"
 
 const clienteVacio = {
@@ -17,14 +27,11 @@ const clienteVacio = {
     direccion: "",
 }
 
-const formatearDinero = (valor) => `$${Number(valor || 0).toLocaleString("es-AR")}`
-const formatearMetodoPago = (metodo) => metodo === "transferencia" ? "Transferencia" : "Efectivo"
-const formatearEstadoPago = (estado) => estado === "incompleto" ? "Incompleto" : "Completo"
-
 export const ClientesComponent = () => {
     const [clientes, setClientes] = useState([])
     const [comprobantesVenta, setComprobantesVenta] = useState([])
     const [busqueda, setBusqueda] = useState("")
+    const [soloConDeuda, setSoloConDeuda] = useState(false)
     const [creandoCliente, setCreandoCliente] = useState(false)
     const [clienteEditandoId, setClienteEditandoId] = useState(null)
     const [clienteConfirmandoId, setClienteConfirmandoId] = useState(null)
@@ -39,8 +46,8 @@ export const ClientesComponent = () => {
                 obtenerDocumentos("comprobantes_venta"),
             ])
 
-            setClientes(clientesData)
-            setComprobantesVenta(comprobantesData)
+            setClientes(normalizarLista(clientesData, normalizarCliente))
+            setComprobantesVenta(normalizarLista(comprobantesData, normalizarComprobanteVenta))
         }
 
         cargarClientes()
@@ -48,19 +55,30 @@ export const ClientesComponent = () => {
 
     const clientesFiltrados = useMemo(() => {
         const textoBusqueda = busqueda.trim().toLowerCase()
-
-        if (!textoBusqueda) return clientes
-
-        return clientes.filter((cliente) => {
+        const clientesPorBusqueda = textoBusqueda ? clientes.filter((cliente) => {
             const nombre = String(cliente.nombre || "").toLowerCase()
-            const telefono = String(cliente.telefono || cliente.contacto || "").toLowerCase()
+            const telefono = String(cliente.telefono || "").toLowerCase()
             const email = String(cliente.email || "").toLowerCase()
-            const dniCuit = String(cliente.dni_cuit || cliente.dniCuit || "").toLowerCase()
+            const dniCuit = String(cliente.dni_cuit || "").toLowerCase()
             const direccion = String(cliente.direccion || "").toLowerCase()
 
             return nombre.includes(textoBusqueda) || telefono.includes(textoBusqueda) || email.includes(textoBusqueda) || dniCuit.includes(textoBusqueda) || direccion.includes(textoBusqueda)
-        })
-    }, [clientes, busqueda])
+        }) : clientes
+
+        if (!soloConDeuda) return clientesPorBusqueda
+
+        return clientesPorBusqueda.filter((cliente) => Number(cliente.deuda || 0) > 0)
+    }, [clientes, busqueda, soloConDeuda])
+
+    useEffect(() => {
+        if (!clienteAbiertoId) return
+
+        const clienteSigueVisible = clientesFiltrados.some((cliente) => cliente.id === clienteAbiertoId)
+
+        if (!clienteSigueVisible) {
+            setClienteAbiertoId(null)
+        }
+    }, [clientesFiltrados, clienteAbiertoId])
 
     const abrirCrearCliente = () => {
         setCreandoCliente(true)
@@ -89,10 +107,10 @@ export const ClientesComponent = () => {
         const id = await crearDocumento("clientes", clienteParaCrear)
 
         setClientes((clientesActuales) => [
-            {
+            normalizarCliente({
                 id,
                 ...clienteParaCrear,
-            },
+            }),
             ...clientesActuales,
         ])
 
@@ -106,9 +124,9 @@ export const ClientesComponent = () => {
         setClienteAbiertoId(null)
         setClienteEditado({
             nombre: cliente.nombre || "",
-            telefono: cliente.telefono || cliente.contacto || "",
+            telefono: cliente.telefono || "",
             email: cliente.email || "",
-            dni_cuit: cliente.dni_cuit || cliente.dniCuit || "",
+            dni_cuit: cliente.dni_cuit || "",
             direccion: cliente.direccion || "",
         })
     }
@@ -132,10 +150,10 @@ export const ClientesComponent = () => {
         setClientes((clientesActuales) => clientesActuales.map((cliente) => {
             if (cliente.id !== clienteId) return cliente
 
-            return {
+            return normalizarCliente({
                 ...cliente,
                 ...clienteActualizado,
-            }
+            })
         }))
 
         cancelarEdicion()
@@ -197,19 +215,135 @@ export const ClientesComponent = () => {
         setComprobantesVenta((comprobantesActuales) => comprobantesActuales.map((comprobante) => {
             if (comprobante.id !== venta.id) return comprobante
 
-            return {
+            return normalizarComprobanteVenta({
                 ...comprobante,
                 ...ventaActualizada,
-            }
+            })
         }))
         setClientes((clientesActuales) => clientesActuales.map((clienteActual) => {
             if (clienteActual.id !== cliente.id) return clienteActual
 
-            return {
+            return normalizarCliente({
                 ...clienteActual,
                 deuda: deudaClienteActualizada,
-            }
+            })
         }))
+    }
+
+    const obtenerResumenCliente = (cliente) => {
+        const ventasCliente = obtenerVentasCliente(cliente.id)
+        const facturacion = ventasCliente.reduce((total, venta) => total + Number(venta.total || 0), 0)
+        const ganancia = ventasCliente.reduce((total, venta) => total + Number(venta.ganancia_total || 0), 0)
+        const deuda = Number(cliente.deuda || 0)
+
+        return {
+            deuda,
+            facturacion: facturacion || Number(cliente.facturacion || 0),
+            ganancia: ganancia || Number(cliente.ganancia || 0),
+            ventas: ventasCliente,
+        }
+    }
+
+    const clienteSeleccionado = clientes.find((cliente) => cliente.id === clienteAbiertoId)
+    const resumenClienteSeleccionado = clienteSeleccionado ? obtenerResumenCliente(clienteSeleccionado) : null
+    const filasClientes = clientesFiltrados.reduce((filas, cliente, index) => {
+        if (index % 2 === 0) {
+            filas.push([cliente])
+        } else {
+            filas[filas.length - 1].push(cliente)
+        }
+
+        return filas
+    }, [])
+
+    const renderDetalleCliente = () => {
+        if (!clienteSeleccionado || !resumenClienteSeleccionado || clienteEditandoId || clienteConfirmandoId) return null
+
+        return <article className="clienteDetalleCard clienteDetalleEnGrid">
+            <div className="clienteDetalleHeader">
+                <div>
+                    <h2>{clienteSeleccionado.nombre}</h2>
+                    <p>{clienteSeleccionado.telefono || "Sin telefono"}</p>
+                </div>
+                <div className="clienteActions">
+                    <button type="button" onClick={() => editarCliente(clienteSeleccionado)} aria-label={`Editar ${clienteSeleccionado.nombre}`}>
+                        <GoPencil />
+                    </button>
+                    <button type="button" onClick={() => setClienteConfirmandoId(clienteSeleccionado.id)} aria-label={`Eliminar ${clienteSeleccionado.nombre}`}>
+                        <GoTrash />
+                    </button>
+                </div>
+            </div>
+
+            <div className="clienteDatosGrid">
+                <p>Email <span>{clienteSeleccionado.email || "-"}</span></p>
+                <p>DNI/CUIT <span>{clienteSeleccionado.dni_cuit || "-"}</span></p>
+                <p>Domicilio <span>{clienteSeleccionado.direccion || "-"}</span></p>
+                <p>Deuda <span className="clienteDeudaNumero">{formatearDinero(resumenClienteSeleccionado.deuda)}</span></p>
+            </div>
+
+            <div className="clienteStats">
+                <p>Ventas <span>{resumenClienteSeleccionado.ventas.length}</span></p>
+                <p>Facturacion <span>{formatearDinero(resumenClienteSeleccionado.facturacion)}</span></p>
+                <p>Ganancia <span>{formatearDinero(resumenClienteSeleccionado.ganancia)}</span></p>
+            </div>
+
+            <div className="clienteVentas">
+                <h3>Historial de Ventas</h3>
+                {
+                    resumenClienteSeleccionado.ventas.length === 0 ? (
+                        <p className="clienteVentasVacio">No hay ventas registradas</p>
+                    ) : (
+                        resumenClienteSeleccionado.ventas.map((venta) => (
+                            <article key={venta.id} className="clienteVentaItem">
+                                <div className="clienteVentaInfo">
+                                    <div className="clienteVentaHeader">
+                                        <div>
+                                            <p>{venta.fecha_hora || venta.fecha}</p>
+                                            <span>{venta.items?.length || 0} {Number(venta.items?.length || 0) === 1 ? "producto" : "productos"}</span>
+                                        </div>
+                                        <div>
+                                            <strong>{formatearDinero(venta.total)}</strong>
+                                            <span>{formatearMetodoPago(venta.metodo_pago)} - {formatearEstadoPago(venta.estado_pago)}</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="clienteVentaProductos">
+                                        {
+                                            (venta.items || []).map((item, index) => (
+                                                <div key={item.id || item.producto_id || `${item.nombre}-${index}`}>
+                                                    <div>
+                                                        <p>{item.nombre || "Producto sin nombre"}</p>
+                                                        <span>
+                                                            {formatearCantidad(item.cantidad_kg ?? item.cantidad)} {formatearTipoStock(item.tipo_stock, item.cantidad_kg ?? item.cantidad)}
+                                                            {" x "}
+                                                            {formatearDinero(item.precio_unitario)}
+                                                        </span>
+                                                    </div>
+                                                    <strong>{formatearDinero(item.subtotal)}</strong>
+                                                </div>
+                                            ))
+                                        }
+                                    </div>
+
+                                    {
+                                        venta.estado_pago === "incompleto" && (
+                                            <div className="clienteVentaPendiente">
+                                                <span className="clienteVentaDeuda">Falta pagar {formatearDinero(venta.monto_debe)}</span>
+                                                <button type="button" onClick={() => completarPago(clienteSeleccionado, venta)}>
+                                                    <FaCheck />
+                                                    Completar pago
+                                                </button>
+                                            </div>
+                                        )
+                                    }
+                                </div>
+                            </article>
+                        ))
+                    )
+                }
+            </div>
+        </article>
     }
 
     return <section>
@@ -233,9 +367,18 @@ export const ClientesComponent = () => {
                 />
             </div>
 
+            <div className="clienteFiltros">
+                <button type="button" className={!soloConDeuda ? "clienteFiltroActivo" : ""} onClick={() => setSoloConDeuda(false)}>
+                    Todos
+                </button>
+                <button type="button" className={soloConDeuda ? "clienteFiltroActivo" : ""} onClick={() => setSoloConDeuda(true)}>
+                    Con deuda
+                </button>
+            </div>
+
             {
                 creandoCliente && (
-                    <article className="clienteCard clienteCardEditando bdRadius">
+                    <article className="clienteDetalleCard clienteCardEditando">
                         <form className="clienteEditForm" onSubmit={(e) => {
                             e.preventDefault()
                             guardarNuevoCliente()
@@ -305,177 +448,141 @@ export const ClientesComponent = () => {
                 )
             }
 
+            <div className="clientesGrid">
+                {
+                    filasClientes.map((fila) => {
+                        const filaActiva = fila.some((cliente) => cliente.id === clienteAbiertoId)
+
+                        return <div key={fila.map((cliente) => cliente.id).join("-")} className="clientesFila">
+                            {
+                                fila.map((cliente) => {
+                                    const resumen = obtenerResumenCliente(cliente)
+                                    const clienteAbierto = clienteAbiertoId === cliente.id
+
+                                    return <button
+                                        key={cliente.id}
+                                        type="button"
+                                        className={`clienteResumenCard ${clienteAbierto ? "clienteResumenCardActiva" : ""}`}
+                                        onClick={() => alternarCliente(cliente.id)}
+                                    >
+                                        <span className="clienteVentasBadge">{resumen.ventas.length}</span>
+                                        <strong>{cliente.nombre}</strong>
+                                        <span>{cliente.telefono || "Sin telefono"}</span>
+                                        <span>Facturado</span>
+                                        <p>{formatearDinero(resumen.facturacion)}</p>
+                                        {
+                                            resumen.deuda > 0 && (
+                                                <em>Debe {formatearDinero(resumen.deuda)}</em>
+                                            )
+                                        }
+                                    </button>
+                                })
+                            }
+                            {filaActiva && renderDetalleCliente()}
+                        </div>
+                    })
+                }
+            </div>
+
             {
-                clientesFiltrados.map((cliente) => {
-                    const ventasCliente = obtenerVentasCliente(cliente.id)
-                    const clienteAbierto = clienteAbiertoId === cliente.id
-
-                    return <article
-                        key={cliente.id}
-                        className={`clienteCard bdRadius ${clienteEditandoId === cliente.id ? "clienteCardEditando" : ""} ${clienteConfirmandoId === cliente.id ? "clienteCardConfirmando" : ""} ${clienteAbierto ? "clienteCardAbierta" : ""}`}
-                        onClick={() => {
-                            if (clienteEditandoId === cliente.id || clienteConfirmandoId === cliente.id) return
-
-                            alternarCliente(cliente.id)
-                        }}
-                    >
-                        {
-                            clienteEditandoId === cliente.id ? (
-                                <form className="clienteEditForm" onSubmit={(e) => {
-                                    e.preventDefault()
-                                    guardarCliente(cliente.id)
-                                }}>
-                                    <input
-                                        type="text"
-                                        value={clienteEditado.nombre}
-                                        onChange={(e) => setClienteEditado((clienteActual) => ({
-                                            ...clienteActual,
-                                            nombre: e.target.value,
-                                        }))}
-                                        aria-label="Nombre del cliente"
-                                    />
-                                    <input
-                                        type="text"
-                                        value={clienteEditado.telefono}
-                                        onChange={(e) => setClienteEditado((clienteActual) => ({
-                                            ...clienteActual,
-                                            telefono: e.target.value,
-                                        }))}
-                                        aria-label="Telefono del cliente"
-                                    />
-                                    <input
-                                        type="email"
-                                        value={clienteEditado.email}
-                                        onChange={(e) => setClienteEditado((clienteActual) => ({
-                                            ...clienteActual,
-                                            email: e.target.value,
-                                        }))}
-                                        aria-label="Email del cliente"
-                                    />
-                                    <input
-                                        type="text"
-                                        value={clienteEditado.dni_cuit}
-                                        onChange={(e) => setClienteEditado((clienteActual) => ({
-                                            ...clienteActual,
-                                            dni_cuit: e.target.value,
-                                        }))}
-                                        aria-label="DNI o CUIT del cliente"
-                                        placeholder="DNI/CUIT"
-                                    />
-                                    <input
-                                        type="text"
-                                        value={clienteEditado.direccion}
-                                        onChange={(e) => setClienteEditado((clienteActual) => ({
-                                            ...clienteActual,
-                                            direccion: e.target.value,
-                                        }))}
-                                        aria-label="Direccion del cliente"
-                                        placeholder="Direccion"
-                                    />
-                                    <div className="clienteEditActions">
-                                        <button type="submit">
-                                            <FaCheck />
-                                            Guardar
-                                        </button>
-                                        <button type="button" onClick={cancelarEdicion}>
-                                            <FaTimes />
-                                            Cancelar
-                                        </button>
-                                    </div>
-                                </form>
-                            ) : clienteConfirmandoId === cliente.id ? (
-                                <div className="clienteDeleteConfirm">
-                                    <p>Esta seguro que desea eliminar a {cliente.nombre}?</p>
-                                    <div className="clienteDeleteActions">
-                                        <button type="button" onClick={() => borrarCliente(cliente)}>
-                                            <GoTrash />
-                                            Eliminar
-                                        </button>
-                                        <button type="button" onClick={() => setClienteConfirmandoId(null)}>
-                                            <FaTimes />
-                                            Cancelar
-                                        </button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <>
-                                    <p>{cliente.nombre}</p>
-                                    <p>{cliente.telefono ? cliente.telefono : ""} - {cliente.email ? cliente.email : ""}</p>
-                                    {
-                                        (cliente.dni_cuit || cliente.dniCuit) && (
-                                            <p className="clienteDniCuit">DNI/CUIT: {cliente.dni_cuit || cliente.dniCuit}</p>
-                                        )
-                                    }
-                                    {
-                                        cliente.direccion && (
-                                            <p className="clienteDniCuit">Direccion: {cliente.direccion}</p>
-                                        )
-                                    }
-                                    <div className="clienteStats">
-                                        <p>Ventas <span>{Number(cliente.ventas || 0)}</span></p>
-                                        <p>Facturacion <span>{formatearDinero(cliente.facturacion)}</span></p>
-                                        <p>Ganancia <span>{formatearDinero(cliente.ganancia)}</span></p>
-                                        <p>Deuda <span className="clienteDeudaNumero">{formatearDinero(cliente.deuda)}</span></p>
-                                    </div>
-                                    <div className="clienteActions">
-                                        <button type="button" onClick={(e) => {
-                                            e.stopPropagation()
-                                            editarCliente(cliente)
-                                        }} aria-label={`Editar ${cliente.nombre}`}>
-                                            <GoPencil />
-                                        </button>
-                                        <button type="button" onClick={(e) => {
-                                            e.stopPropagation()
-                                            setClienteConfirmandoId(cliente.id)
-                                        }} aria-label={`Eliminar ${cliente.nombre}`}>
-                                            <GoTrash />
-                                        </button>
-                                    </div>
-                                    {
-                                        clienteAbierto && (
-                                            <div className="clienteVentas">
-                                                <h3>Ventas del cliente</h3>
-                                                {
-                                                    ventasCliente.length === 0 ? (
-                                                        <p className="clienteVentasVacio">No hay ventas registradas</p>
-                                                    ) : (
-                                                        ventasCliente.map((venta) => (
-                                                            <article key={venta.id} className="clienteVentaItem">
-                                                                <div>
-                                                                    <p>{venta.fecha_hora || venta.fecha}</p>
-                                                                    <span>{venta.items?.length || 0} {Number(venta.items?.length || 0) === 1 ? "producto" : "productos"}</span>
-                                                                </div>
-                                                                <div>
-                                                                    <strong>{formatearDinero(venta.total)}</strong>
-                                                                    <span>{formatearMetodoPago(venta.metodo_pago)} - {formatearEstadoPago(venta.estado_pago)}</span>
-                                                                    {
-                                                                        venta.estado_pago === "incompleto" && (
-                                                                            <>
-                                                                                <span className="clienteVentaDeuda">Falta pagar {formatearDinero(venta.monto_debe)}</span>
-                                                                                <button type="button" onClick={(e) => {
-                                                                                    e.stopPropagation()
-                                                                                    completarPago(cliente, venta)
-                                                                                }}>
-                                                                                    <FaCheck />
-                                                                                    Completar pago
-                                                                                </button>
-                                                                            </>
-                                                                        )
-                                                                    }
-                                                                </div>
-                                                            </article>
-                                                        ))
-                                                    )
-                                                }
-                                            </div>
-                                        )
-                                    }
-                                </>
-                            )
-                        }
-                    </article>
-                })
+                clientesFiltrados.length === 0 && (
+                    <p className="clientesVacio">No hay clientes para mostrar</p>
+                )
             }
+
+            {
+                clienteEditandoId && (
+                    <article className="clienteDetalleCard clienteCardEditando">
+                        <form className="clienteEditForm" onSubmit={(e) => {
+                            e.preventDefault()
+                            guardarCliente(clienteEditandoId)
+                        }}>
+                            <input
+                                type="text"
+                                value={clienteEditado.nombre}
+                                onChange={(e) => setClienteEditado((clienteActual) => ({
+                                    ...clienteActual,
+                                    nombre: e.target.value,
+                                }))}
+                                aria-label="Nombre del cliente"
+                            />
+                            <input
+                                type="text"
+                                value={clienteEditado.telefono}
+                                onChange={(e) => setClienteEditado((clienteActual) => ({
+                                    ...clienteActual,
+                                    telefono: e.target.value,
+                                }))}
+                                aria-label="Telefono del cliente"
+                            />
+                            <input
+                                type="email"
+                                value={clienteEditado.email}
+                                onChange={(e) => setClienteEditado((clienteActual) => ({
+                                    ...clienteActual,
+                                    email: e.target.value,
+                                }))}
+                                aria-label="Email del cliente"
+                            />
+                            <input
+                                type="text"
+                                value={clienteEditado.dni_cuit}
+                                onChange={(e) => setClienteEditado((clienteActual) => ({
+                                    ...clienteActual,
+                                    dni_cuit: e.target.value,
+                                }))}
+                                aria-label="DNI o CUIT del cliente"
+                                placeholder="DNI/CUIT"
+                            />
+                            <input
+                                type="text"
+                                value={clienteEditado.direccion}
+                                onChange={(e) => setClienteEditado((clienteActual) => ({
+                                    ...clienteActual,
+                                    direccion: e.target.value,
+                                }))}
+                                aria-label="Direccion del cliente"
+                                placeholder="Direccion"
+                            />
+                            <div className="clienteEditActions">
+                                <button type="submit">
+                                    <FaCheck />
+                                    Guardar
+                                </button>
+                                <button type="button" onClick={cancelarEdicion}>
+                                    <FaTimes />
+                                    Cancelar
+                                </button>
+                            </div>
+                        </form>
+                    </article>
+                )
+            }
+
+            {
+                clienteConfirmandoId && (
+                    <article className="clienteDetalleCard clienteCardConfirmando">
+                        <div className="clienteDeleteConfirm">
+                            <p>Esta seguro que desea eliminar este cliente?</p>
+                            <div className="clienteDeleteActions">
+                                <button type="button" onClick={() => {
+                                    const cliente = clientes.find((clienteActual) => clienteActual.id === clienteConfirmandoId)
+
+                                    if (cliente) borrarCliente(cliente)
+                                }}>
+                                    <GoTrash />
+                                    Eliminar
+                                </button>
+                                <button type="button" onClick={() => setClienteConfirmandoId(null)}>
+                                    <FaTimes />
+                                    Cancelar
+                                </button>
+                            </div>
+                        </div>
+                    </article>
+                )
+            }
+
         </div>
     </section>
 }
