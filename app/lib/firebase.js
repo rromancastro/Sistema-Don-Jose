@@ -1,5 +1,6 @@
 // Import the functions you need from the SDKs you need
 import { getApps, initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
 import {
   addDoc,
   collection,
@@ -25,6 +26,7 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+export const auth = getAuth(app);
 export const db = getFirestore(app);
 
 export const obtenerDocumentos = async (nombreColeccion) => {
