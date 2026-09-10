@@ -8,8 +8,9 @@ import { obtenerFechaHoraActual } from "../lib/fechas"
 import { actualizarDocumento, crearDocumento, obtenerDocumentos } from "../lib/firebase"
 import { formatearNumero, formatearTipoStock, normalizarLista, normalizarProducto, obtenerNombreProducto, obtenerStockProducto, obtenerTipoStock } from "../lib/normalizadores"
 import { NavComponent } from "./NavComponent"
+import { ConversionEmpaque } from "./ConversionEmpaque"
+import { obtenerTipoProducto } from "../lib/normalizadores"
 
-const CATEGORIAS_FRUTA_FRESCA = ["Fruta Fresca", "Fruta Fresta"]
 const ESTADO_PENDIENTE = "pendiente"
 const ESTADO_COMPLETADA = "completada"
 
@@ -32,24 +33,24 @@ export const TransformacionesComponent = () => {
             ])
 
             const productosNormalizados = normalizarLista(productosData, normalizarProducto)
-            const productosMateriaPrima = productosNormalizados.filter((producto) => CATEGORIAS_FRUTA_FRESCA.includes(producto.categoria))
-            const productosFinales = productosNormalizados.filter((producto) => !CATEGORIAS_FRUTA_FRESCA.includes(producto.categoria))
+            const productosMateriaPrima = productosNormalizados.filter((producto) => obtenerTipoProducto(producto) === "fruta_fresca")
+            const productosFinales = productosNormalizados.filter((producto) => obtenerTipoProducto(producto) === "deshidratado")
 
             setProductos(productosNormalizados)
             setTransformaciones(transformacionesData.sort((a, b) => String(b.fecha_hora || "").localeCompare(String(a.fecha_hora || ""))))
-            setMateriaPrimaId(productosMateriaPrima[0]?.id || productosNormalizados[0]?.id || "")
-            setProductoFinalId(productosFinales[0]?.id || productosNormalizados[0]?.id || "")
+            setMateriaPrimaId(productosMateriaPrima[0]?.id || "")
+            setProductoFinalId(productosFinales[0]?.id || "")
         }
 
         cargarDatos()
     }, [])
 
     const productosMateriaPrima = useMemo(() => {
-        return productos.filter((producto) => CATEGORIAS_FRUTA_FRESCA.includes(producto.categoria))
+        return productos.filter((producto) => obtenerTipoProducto(producto) === "fruta_fresca")
     }, [productos])
 
     const productosFinales = useMemo(() => {
-        return productos.filter((producto) => producto.id !== materiaPrimaId)
+        return productos.filter((producto) => producto.id !== materiaPrimaId && obtenerTipoProducto(producto) === "deshidratado")
     }, [productos, materiaPrimaId])
 
     const materiaPrimaSeleccionada = useMemo(() => {
@@ -227,6 +228,11 @@ export const TransformacionesComponent = () => {
         </NavComponent>
 
         <div id="transformacionesContainer">
+            <ConversionEmpaque productos={productos} onRegistrada={({ productos: actualizados, transformacion }) => {
+                setProductos((actuales) => actuales.map((item) => actualizados.find((nuevo) => nuevo.id === item.id) || item))
+                setTransformaciones((actuales) => [transformacion, ...actuales.filter((item) => item.id !== transformacion.id)])
+            }} />
+            <h2>Fruta fresca → Deshidratado</h2>
             <div className="transformacionCampo">
                 <label>Fruta Fresca (Materia Prima)</label>
                 <SelectorProducto productos={productosMateriaPrima} value={materiaPrimaId} entidad="Materia prima" onChange={id => { setMateriaPrimaId(id); setCantidadUtilizada("") }} />

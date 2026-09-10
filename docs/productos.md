@@ -31,3 +31,43 @@ leer y escribir `contadores/productos`, además de crear productos. Las reglas
 no están versionadas en este repositorio: se debe verificar ese acceso en el
 proyecto Firebase. La protección contra escrituras directas fuera de la aplicación
 también debe implementarse en esas reglas.
+
+Stock muestra cuatro pestañas por `tipo_producto`: Fruta fresca, Deshidratada,
+Caja y Envasado. Cada pestaña permite crear productos con ese tipo preseleccionado.
+Caja y envasado se guardan en unidades enteras; fruta fresca y deshidratada proponen kg.
+
+## Atributos por tipo
+
+Los atributos se guardan en el objeto `atributos` de cada producto:
+
+- Fruta fresca: `variedad`, `calidad`, `rendimiento_esperado` (%).
+- Deshidratado: `fruta_origen`, `presentacion`, `calidad`, `humedad` (%).
+- Caja: `peso_neto_kg` obligatorio y `tipo_empaque`.
+- Envasado: `peso_neto_kg` obligatorio, `tipo_empaque` y `codigo_barras` opcional.
+
+Cajas y envasados guardan además `producto_contenido_id`: el deshidratado de origen
+para cajas, y la caja de origen para envasados. Una caja representa producto con
+contenido, no un material de embalaje vacío. Los registros existentes se configuran
+desde Stock antes de convertirlos. No se modificaron datos remotos ni se agregaron lotes.
+
+## Conversiones de empaque
+
+Desde Stock se accede a Transformaciones. El panel de conversiones permite:
+
+1. Deshidratado → Caja: 20 kg de origen producen 2 cajas de 10 kg.
+2. Caja → Envasado: 1 caja de 10 kg produce 40 envases de 0,25 kg.
+
+Se selecciona la cantidad de origen y el destino debe estar vinculado a ese origen.
+La salida se calcula con los pesos netos. Se rechazan pesos inválidos, stock
+insuficiente, unidades incorrectas, cajas fraccionadas y cantidades con sobrantes.
+Para cantidades con sobrantes hay que ajustar el origen; no se descarta peso automáticamente.
+
+`registrarConversion` vuelve a leer los productos dentro de una transacción de
+Firestore y guarda ambos stocks y el historial juntos. Una misma operación conserva
+su identificador al reintentar desde el formulario para evitar duplicarla. El historial
+registra pesos, cantidades y stocks anteriores/posteriores, y queda completado de inmediato.
+Los costos y precios de los productos destino conservan su configuración en Stock.
+El flujo previo de deshidratación continúa disponible en la misma pantalla.
+
+Validación local: `node --test tests/productosStock.test.mjs`.
+Las pruebas cubren cálculos y validaciones; no escriben en Firebase.

@@ -19,16 +19,22 @@ import {
     TIPOS_PRODUCTO,
 } from "../lib/normalizadores"
 import { NavComponent } from "./NavComponent"
+import { AtributosProducto } from "./AtributosProducto"
+import { ATRIBUTOS_PRODUCTO, cambioStock, esEmpaque, normalizarAtributos } from "../lib/productosStock"
 
 const TABS = {
-    DESHIDRATADOS: "deshidratados",
-    FRESCA: "fresca",
+    DESHIDRATADOS: "deshidratado",
+    FRESCA: "fruta_fresca",
+    CAJA: "caja",
+    ENVASADO: "envasado",
 }
 
 const CATEGORIAS_FRUTA_FRESCA = ["Fruta Fresca", "Fruta Fresta"]
 const CATEGORIAS_DESHIDRATADOS = ["Frutas Secas", "Frutas Frescas", "Mix"]
 
 const productoVacio = {
+    atributos: {},
+    producto_contenido_id: "",
     tipo_producto: "deshidratado",
     nombre: "",
     categoria: CATEGORIAS_DESHIDRATADOS[0],
@@ -61,22 +67,19 @@ export const StockComponent = () => {
         cargarProductos()
     }, [])
 
-    const productosFrutaFresca = useMemo(() => {
-        return productos.filter((producto) => CATEGORIAS_FRUTA_FRESCA.includes(producto.categoria))
-    }, [productos])
-
-    const categoriasDeshidratadasDisponibles = useMemo(() => {
+    const categoriasDisponibles = useMemo(() => {
         return Array.from(new Set([
-            ...CATEGORIAS_DESHIDRATADOS,
+            ...(tabActiva === TABS.DESHIDRATADOS ? CATEGORIAS_DESHIDRATADOS : [TIPOS_PRODUCTO[tabActiva]]),
             ...productos
+                .filter((producto) => obtenerTipoProducto(producto) === tabActiva)
                 .map((producto) => producto.categoria)
-                .filter((categoria) => categoria && !CATEGORIAS_FRUTA_FRESCA.includes(categoria)),
+                .filter(Boolean),
         ]))
-    }, [productos])
+    }, [productos, tabActiva])
 
-    const productosDeshidratadosPorCategoria = useMemo(() => {
-        return categoriasDeshidratadasDisponibles.reduce((categorias, categoria) => {
-            const productosCategoria = productos.filter((producto) => producto.categoria === categoria)
+    const productosPorCategoria = useMemo(() => {
+        return categoriasDisponibles.reduce((categorias, categoria) => {
+            const productosCategoria = productos.filter((producto) => producto.categoria === categoria && obtenerTipoProducto(producto) === tabActiva)
 
             if (productosCategoria.length > 0) {
                 categorias.push({
@@ -87,19 +90,18 @@ export const StockComponent = () => {
 
             return categorias
         }, [])
-    }, [productos, categoriasDeshidratadasDisponibles])
+    }, [productos, categoriasDisponibles, tabActiva])
 
     const todasLasCategorias = useMemo(() => {
         return Array.from(new Set([
             ...CATEGORIAS_FRUTA_FRESCA,
-            ...categoriasDeshidratadasDisponibles,
+            ...categoriasDisponibles,
             productoEditado.categoria,
         ].filter(Boolean)))
-    }, [categoriasDeshidratadasDisponibles, productoEditado.categoria])
+    }, [categoriasDisponibles, productoEditado.categoria])
 
     const abrirCrearProducto = () => {
-        if (tabActiva !== TABS.DESHIDRATADOS) return
-
+        setNuevoProducto({ ...productoVacio, tipo_producto: tabActiva, categoria: tabActiva === TABS.DESHIDRATADOS ? CATEGORIAS_DESHIDRATADOS[0] : TIPOS_PRODUCTO[tabActiva], tipo_stock: [TABS.CAJA, TABS.ENVASADO].includes(tabActiva) ? "unidad" : "kg" })
         setCreandoProducto(true)
         setProductoEditandoId(null)
         setProductoConfirmandoId(null)
@@ -157,7 +159,29 @@ export const StockComponent = () => {
 
         if (!nombre || !categoria) return null
 
+        const tipo = productoFormulario.tipo_producto
+        const atributos = normalizarAtributos(tipo, productoFormulario.atributos)
+        const empaque = esEmpaque(tipo)
+        const origen = productos.find((item) => item.id === productoFormulario.producto_contenido_id)
+        if (empaque && (!origen || origen.id === productoEditandoId || obtenerTipoProducto(origen) !== (tipo === "caja" ? "deshidratado" : "caja"))) {
+            alert("Seleccioná un producto de origen válido.")
+            return null
+        }
+        for (const { campo, numero, requerido, max } of ATRIBUTOS_PRODUCTO[tipo] || []) {
+            const valor = atributos[campo]
+            if (numero && ((requerido && !(valor > 0)) || (valor !== "" && (!Number.isFinite(valor) || valor < 0 || (max != null && valor > max))))) {
+                alert("Revisá los pesos y porcentajes del producto.")
+                return null
+            }
+        }
+        if (empaque && !Number.isSafeInteger(Number(productoFormulario.stock || 0))) {
+            alert("El stock de cajas y envasados debe ser entero.")
+            return null
+        }
+
         return {
+            atributos,
+            producto_contenido_id: empaque ? origen.id : "",
             alerta_stock: Number(productoFormulario.alerta_stock || 0),
             categoria,
             costo: Number(productoFormulario.costo || 0),
@@ -166,7 +190,7 @@ export const StockComponent = () => {
             precio_mayorista: Number(productoFormulario.precio_mayorista || 0),
             precio_minorista: Number(productoFormulario.precio_minorista || 0),
             stock: Number(productoFormulario.stock || 0),
-            tipo_stock: productoFormulario.tipo_stock,
+            tipo_stock: empaque ? "unidad" : productoFormulario.tipo_stock,
             tipo_producto: productoFormulario.tipo_producto,
         }
     }
@@ -199,6 +223,7 @@ export const StockComponent = () => {
             ...productosActuales,
         ])
         cancelarCrearProducto()
+        setTabActiva(productoParaCrear.tipo_producto)
     }
 
     const editarProducto = (producto) => {
@@ -207,6 +232,9 @@ export const StockComponent = () => {
         setProductoEditandoId(producto.id)
         setProductoConfirmandoId(null)
         setProductoEditado({
+            id: producto.id,
+            atributos: producto.atributos || {},
+            producto_contenido_id: producto.producto_contenido_id || "",
             nombre: obtenerNombreProducto(producto),
             categoria: producto.categoria || "",
             nuevaCategoria: "",
@@ -231,7 +259,14 @@ export const StockComponent = () => {
 
         if (!productoActualizado) return
 
-        await actualizarDocumento("productos", productoId, productoActualizado)
+        const original = productos.find((producto) => producto.id === productoId)
+        Object.assign(productoActualizado, cambioStock(original, productoActualizado.stock))
+        try {
+            await actualizarDocumento("productos", productoId, productoActualizado)
+        } catch (error) {
+            alert(error.message || "No se pudo guardar el producto.")
+            return
+        }
 
         setProductos((productosActuales) => productosActuales.map((producto) => {
             if (producto.id !== productoId) return producto
@@ -242,6 +277,7 @@ export const StockComponent = () => {
             })
         }))
         cancelarEdicionProducto()
+        setTabActiva(productoActualizado.tipo_producto)
     }
 
     const confirmarBorradoProducto = (productoId) => {
@@ -301,7 +337,7 @@ export const StockComponent = () => {
                             aria-label="Categoria"
                         >
                             {
-                                (mostrarCategoriaNueva ? categoriasDeshidratadasDisponibles : todasLasCategorias).map((categoria) => (
+                                (mostrarCategoriaNueva ? categoriasDisponibles : todasLasCategorias).map((categoria) => (
                                     <option key={categoria} value={categoria}>{categoria}</option>
                                 ))
                             }
@@ -318,24 +354,31 @@ export const StockComponent = () => {
             }
 
             <label>Tipo de producto</label>
-            <select value={productoFormulario.tipo_producto} onChange={e => cambiarCampo("tipo_producto", e.target.value)} aria-label="Tipo de producto">
+            <select value={productoFormulario.tipo_producto} onChange={e => {
+                cambiarCampo("tipo_producto", e.target.value)
+                cambiarCampo("producto_contenido_id", "")
+                cambiarCampo("tipo_stock", esEmpaque(e.target.value) ? "unidad" : "kg")
+            }} aria-label="Tipo de producto">
                 {Object.entries(TIPOS_PRODUCTO).map(([valor, etiqueta]) => <option key={valor} value={valor}>{etiqueta}</option>)}
             </select>
+
+            <AtributosProducto producto={productoFormulario} productos={productos} cambiarCampo={cambiarCampo} />
 
             <label>Stock</label>
             <input
                 type="number"
                 min="0"
-                step="0.01"
+                step={esEmpaque(productoFormulario.tipo_producto) ? "1" : "0.01"}
                 value={productoFormulario.stock}
                 onChange={(e) => cambiarNumero("stock", e.target.value)}
                 placeholder="0"
             />
 
             <select
-                value={productoFormulario.tipo_stock}
+                value={esEmpaque(productoFormulario.tipo_producto) ? "unidad" : productoFormulario.tipo_stock}
+                disabled={esEmpaque(productoFormulario.tipo_producto)}
                 onChange={(e) => cambiarCampo("tipo_stock", e.target.value)}
-                aria-label="Tipo de stock"
+                aria-label="Unidad de stock"
             >
                 <option value="kg">Por Kilogramo (kg)</option>
                 <option value="unidad">Por Unidad</option>
@@ -445,25 +488,16 @@ export const StockComponent = () => {
         </NavComponent>
 
         <div id="stockContainer">
-            <div className="stockTabs">
-                <button
-                    type="button"
-                    className={tabActiva === TABS.DESHIDRATADOS ? "stockTabActiva stockTabVioleta" : ""}
-                    onClick={() => setTabActiva(TABS.DESHIDRATADOS)}
-                >
-                    Productos Deshidratados
-                </button>
-                <button
-                    type="button"
-                    className={tabActiva === TABS.FRESCA ? "stockTabActiva stockTabAzul" : ""}
-                    onClick={() => setTabActiva(TABS.FRESCA)}
-                >
-                    Fruta Fresca
-                </button>
+            <Link href="/nuena-transformacion">Convertir productos / Transformaciones</Link>
+            <div className="stockTabs" aria-label="Categorías de stock">
+                {Object.entries(TIPOS_PRODUCTO).map(([tipo, etiqueta]) => (
+                    <button key={tipo} type="button" aria-pressed={tabActiva === tipo}
+                        className={tabActiva === tipo ? "stockTabActiva stockTabVioleta" : ""}
+                        onClick={() => { setTabActiva(tipo); cancelarCrearProducto(); cancelarEdicionProducto(); setProductoConfirmandoId(null) }}>
+                        {etiqueta}
+                    </button>
+                ))}
             </div>
-
-            {
-                tabActiva === TABS.DESHIDRATADOS ? (
                     <div className="stockLista">
                         {
                             creandoProducto && (
@@ -481,10 +515,10 @@ export const StockComponent = () => {
                             )
                         }
                         {
-                            productosDeshidratadosPorCategoria.length === 0 ? (
-                                <p className="stockVacio">No hay productos deshidratados cargados</p>
+                            productosPorCategoria.length === 0 ? (
+                                <p className="stockVacio">No hay productos de {TIPOS_PRODUCTO[tabActiva].toLowerCase()} cargados</p>
                             ) : (
-                                productosDeshidratadosPorCategoria.map((grupo) => (
+                                productosPorCategoria.map((grupo) => (
                                     <div key={grupo.categoria} className="stockGrupo">
                                         <h2>
                                             <FiBox />
@@ -513,6 +547,8 @@ export const StockComponent = () => {
                                                                             {producto.disponible && <FiEye />}
                                                                         </p>
                                                                         <span>{TIPOS_PRODUCTO[obtenerTipoProducto(producto)]} · Código: {producto.id_producto ?? "—"} · Stock: {obtenerStockProducto(producto)} {obtenerTipoStock(producto)}</span>
+                                                                        {(ATRIBUTOS_PRODUCTO[obtenerTipoProducto(producto)] || []).filter(({ campo }) => producto.atributos?.[campo] !== "" && producto.atributos?.[campo] != null).map(({ campo, etiqueta }) => <span key={campo}>{etiqueta}: {producto.atributos[campo]}</span>)}
+                                                                        {producto.producto_contenido_id && <span>Origen: {productos.find((item) => item.id === producto.producto_contenido_id)?.nombre || "Producto eliminado"}</span>}
                                                                     </div>
                                                                     {renderAccionesProducto(producto)}
                                                                 </div>
@@ -541,43 +577,6 @@ export const StockComponent = () => {
                             )
                         }
                     </div>
-                ) : (
-                    <div className="stockLista">
-                        {
-                            productosFrutaFresca.length === 0 ? (
-                                <p className="stockVacio">No hay fruta fresca cargada</p>
-                            ) : (
-                                productosFrutaFresca.map((producto) => (
-                                    <article key={producto.id} className={`stockCard stockCardFresco bdRadius ${productoEditandoId === producto.id ? "stockCardEditando" : ""} ${productoConfirmandoId === producto.id ? "stockCardConfirmando" : ""}`}>
-                                        {
-                                            productoEditandoId === producto.id ? (
-                                                renderFormularioProducto({
-                                                    productoFormulario: productoEditado,
-                                                    cambiarCampo: cambiarCampoProductoEditado,
-                                                    cambiarNumero: cambiarNumeroProductoEditado,
-                                                    onSubmit: () => guardarProductoEditado(producto.id),
-                                                    onCancel: cancelarEdicionProducto,
-                                                })
-                                            ) : productoConfirmandoId === producto.id ? (
-                                                renderConfirmacionBorrado(producto)
-                                            ) : (
-                                                <>
-                                                    <div>
-                                                        <p>{obtenerNombreProducto(producto)}</p>
-                                                        <span>{TIPOS_PRODUCTO[obtenerTipoProducto(producto)]} · Código: {producto.id_producto ?? "—"} · Stock: {obtenerStockProducto(producto)} {obtenerTipoStock(producto)}</span>
-                                                        <span>Costo: {formatearPrecio(obtenerCostoProducto(producto))}/{obtenerTipoStock(producto)}</span>
-                                                    </div>
-                                                    {renderAccionesProducto(producto)}
-                                                </>
-                                            )
-                                        }
-                                    </article>
-                                ))
-                            )
-                        }
-                    </div>
-                )
-            }
         </div>
     </section>
 }

@@ -47,7 +47,7 @@ export const obtenerTipoStock = (producto) => producto.tipo_stock || "kg"
 
 export const TIPOS_PRODUCTO = {
     fruta_fresca: "Fruta fresca",
-    deshidratado: "Deshidratado",
+    deshidratado: "Deshidratada",
     caja: "Caja",
     envasado: "Envasado",
 }
