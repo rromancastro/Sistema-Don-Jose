@@ -1468,7 +1468,8 @@
   font-size: 16px;
   font-weight: 500;
 }
-.ventaCampo select {
+.ventaCampo select,
+.ventaCampo .selectorPorNombre input {
   width: 100%;
   height: 62px;
   border: 2px solid #D1D5DC;
@@ -1479,7 +1480,8 @@
   outline: none;
   padding: 0 20px;
 }
-.ventaCampo select:focus {
+.ventaCampo select:focus,
+.ventaCampo .selectorPorNombre input:focus {
   border-color: #00C950;
 }
 
@@ -2234,7 +2236,8 @@
   font-weight: 700;
 }
 .compraCampo select,
-.compraCampo input {
+.compraCampo input,
+.compraCampo textarea {
   width: 100%;
   height: 62px;
   border: 2px solid #D1D5DC;
@@ -2246,8 +2249,83 @@
   padding: 0 20px;
 }
 .compraCampo select:focus,
-.compraCampo input:focus {
+.compraCampo input:focus,
+.compraCampo textarea:focus {
   border-color: #F54900;
+}
+
+.compraTabs {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.compraTabs button {
+  flex: 1;
+  padding: 14px 20px;
+  border: 1px solid #FDBA74;
+  border-radius: 10px;
+  background: #fff;
+  color: #9A3412;
+  cursor: pointer;
+  font: inherit;
+}
+.compraTabs button[aria-selected=true] {
+  background: #F54900;
+  color: #fff;
+}
+
+.compraFrescaForm, .compraFrescaCampos {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.compraFrescaCampos {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.compraDatosGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 16px;
+}
+
+.compraCampo textarea {
+  height: auto;
+  min-height: 96px;
+  padding: 14px 20px;
+  resize: vertical;
+}
+
+.compraCampo input[readonly] {
+  background: #F1F5F9;
+  color: #475569;
+}
+
+.compraSeccionPendiente, .compraValeGuardado {
+  padding: 20px;
+  border: 1px solid #FDBA74;
+  border-radius: 14px;
+  background: #FFF7ED;
+}
+
+.compraValeGuardado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.compraValeGuardado button {
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 8px;
+  background: #F54900;
+  color: white;
+  cursor: pointer;
 }
 
 .compraCrearProductoBtn {
@@ -3241,14 +3319,14 @@
     grid-template-columns: 1fr;
   }
 }
-#presupuestosContainer {
+#cotizacionesContainer {
   display: flex;
   flex-direction: column;
   gap: 16px;
   padding: var(--space-page);
 }
 
-.presupuestoForm {
+.cotizacionForm {
   border: 2px solid #D8B4FE;
   border-radius: var(--radius-card);
   background-color: #FAF5FF;
@@ -3257,13 +3335,14 @@
   gap: 12px;
   padding: var(--space-card);
 }
-.presupuestoForm label {
+.cotizacionForm label {
   color: #3B0764;
   font-size: 14px;
   font-weight: 500;
 }
-.presupuestoForm select,
-.presupuestoForm input {
+.cotizacionForm select,
+.cotizacionForm input,
+.cotizacionForm textarea {
   width: 100%;
   min-height: var(--control-height);
   border: 2px solid #C084FC;
@@ -3274,18 +3353,40 @@
   outline: none;
   padding: 0 16px;
 }
-.presupuestoForm select:focus,
-.presupuestoForm input:focus {
+.cotizacionForm select:focus,
+.cotizacionForm input:focus,
+.cotizacionForm textarea:focus {
   border-color: #9810FA;
   box-shadow: 0 0 0 3px rgba(152, 16, 250, 0.1019607843);
 }
 
-.presupuestoFormHeader {
+.cotizacionDatosGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 12px;
+}
+.cotizacionDatosGrid label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cotizacionForm textarea {
+  padding: 12px 16px;
+  resize: vertical;
+}
+
+.cotizacionObservaciones {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.cotizacionFormHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
-.presupuestoFormHeader h2 {
+.cotizacionFormHeader h2 {
   color: #581C87;
   font-size: 18px;
   font-weight: 700;
@@ -3293,7 +3394,7 @@
   align-items: center;
   gap: 8px;
 }
-.presupuestoFormHeader button {
+.cotizacionFormHeader button {
   border: 0;
   background-color: transparent;
   color: #9810FA;
@@ -3302,7 +3403,7 @@
   padding: 4px;
 }
 
-.presupuestoCrearClienteBtn {
+.cotizacionCrearClienteBtn {
   min-height: var(--control-height);
   border: 2px dashed #D8B4FE;
   border-radius: var(--radius-control);
@@ -3317,12 +3418,12 @@
   gap: 8px;
 }
 
-.presupuestoNuevoCliente {
+.cotizacionNuevoCliente {
   display: grid;
   grid-template-columns: 1fr 1fr auto;
   gap: 8px;
 }
-.presupuestoNuevoCliente button {
+.cotizacionNuevoCliente button {
   min-height: var(--control-height);
   border: 0;
   border-radius: var(--radius-control);
@@ -3338,17 +3439,17 @@
   padding: 0 12px;
 }
 
-.presupuestoSeparador {
+.cotizacionSeparador {
   height: 1px;
   background-color: #E9D5FF;
 }
 
-.presupuestoProductoConfig {
+.cotizacionProductoConfig {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
-.presupuestoProductoConfig > button {
+.cotizacionProductoConfig > button {
   width: 100%;
   min-height: var(--control-height);
   border: 0;
@@ -3364,17 +3465,17 @@
   gap: 8px;
   padding: 0 12px;
 }
-.presupuestoProductoConfig > button:disabled {
+.cotizacionProductoConfig > button:disabled {
   background-color: #A1A1AA;
   cursor: not-allowed;
 }
 
-.presupuestoPrecioGrid {
+.cotizacionPrecioGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
 }
-.presupuestoPrecioGrid button {
+.cotizacionPrecioGrid button {
   min-height: var(--control-height);
   border: 2px solid #D8B4FE;
   border-radius: var(--radius-control);
@@ -3389,18 +3490,18 @@
   padding: 0 12px;
   text-align: center;
 }
-.presupuestoPrecioGrid .presupuestoPrecioActivo {
+.cotizacionPrecioGrid .cotizacionPrecioActivo {
   border-color: #9810FA;
   background-color: #9810FA;
   color: #fff;
 }
 
-.presupuestoItemsForm {
+.cotizacionItemsForm {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
-.presupuestoItemsForm div {
+.cotizacionItemsForm div {
   border-radius: 8px;
   background-color: #fff;
   display: grid;
@@ -3409,12 +3510,12 @@
   gap: 8px;
   padding: 10px;
 }
-.presupuestoItemsForm div span,
-.presupuestoItemsForm div strong {
+.cotizacionItemsForm div span,
+.cotizacionItemsForm div strong {
   color: #0F172A;
   font-size: 14px;
 }
-.presupuestoItemsForm div button {
+.cotizacionItemsForm div button {
   border: 0;
   background-color: transparent;
   color: #DC2626;
@@ -3422,25 +3523,25 @@
   display: flex;
 }
 
-.presupuestoFormFooter,
-.presupuestoModalTotal {
+.cotizacionFormFooter,
+.cotizacionModalTotal {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
-.presupuestoFormFooter span,
-.presupuestoModalTotal span {
+.cotizacionFormFooter span,
+.cotizacionModalTotal span {
   color: #364153;
   font-size: 16px;
 }
-.presupuestoFormFooter strong,
-.presupuestoModalTotal strong {
+.cotizacionFormFooter strong,
+.cotizacionModalTotal strong {
   color: #9810FA;
   font-size: 24px;
   font-weight: 500;
 }
 
-.presupuestoGuardarBtn {
+.cotizacionGuardarBtn {
   min-height: var(--control-height);
   border: 0;
   border-radius: var(--radius-control);
@@ -3454,31 +3555,31 @@
   justify-content: center;
   gap: 8px;
 }
-.presupuestoGuardarBtn:disabled {
+.cotizacionGuardarBtn:disabled {
   background-color: #A1A1AA;
   cursor: not-allowed;
 }
 
-.presupuestosTitulo {
+.cotizacionesTitulo {
   color: #0F172A;
   font-size: 18px;
   font-weight: 700;
 }
 
-.presupuestosLista {
+.cotizacionesLista {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.presupuestosVacio {
+.cotizacionesVacio {
   color: #64748B;
   font-size: 16px;
   text-align: center;
   padding: 48px 0;
 }
 
-.presupuestoCard {
+.cotizacionCard {
   border: 2px solid #D8B4FE;
   border-radius: var(--radius-card);
   background-color: #fff;
@@ -3488,29 +3589,29 @@
   padding: var(--space-card);
 }
 
-.presupuestoCardHeader {
+.cotizacionCardHeader {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
 }
-.presupuestoCardHeader h3 {
+.cotizacionCardHeader h3 {
   color: #0F172A;
   font-size: 18px;
   font-weight: 500;
   margin-bottom: 4px;
 }
-.presupuestoCardHeader span {
+.cotizacionCardHeader span {
   color: #4A5579;
   font-size: 14px;
 }
-.presupuestoCardHeader strong {
+.cotizacionCardHeader strong {
   color: #9810FA;
   font-size: 20px;
   font-weight: 500;
 }
 
-.presupuestoItems {
+.cotizacionItems {
   border-radius: 8px;
   background-color: #F8FAFC;
   display: flex;
@@ -3518,25 +3619,25 @@
   gap: 8px;
   padding: 12px;
 }
-.presupuestoItems div {
+.cotizacionItems div {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
 }
-.presupuestoItems span,
-.presupuestoItems strong {
+.cotizacionItems span,
+.cotizacionItems strong {
   color: #0F172A;
   font-size: 14px;
   font-weight: 400;
 }
 
-.presupuestoAcciones {
+.cotizacionAcciones {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr auto;
   gap: 8px;
 }
-.presupuestoAcciones button {
+.cotizacionAcciones button {
   min-height: 40px;
   border: 0;
   border-radius: 8px;
@@ -3549,29 +3650,29 @@
   gap: 8px;
   padding: 0 14px;
 }
-.presupuestoAcciones button:nth-child(1) {
+.cotizacionAcciones button:nth-child(1) {
   background-color: #F3F4F6;
   color: #111827;
 }
-.presupuestoAcciones button:nth-child(2) {
+.cotizacionAcciones button:nth-child(2) {
   background-color: #F3E8FF;
   color: #7E22CE;
 }
-.presupuestoAcciones button:nth-child(3) {
+.cotizacionAcciones button:nth-child(3) {
   background-color: #00A63E;
   color: #fff;
 }
-.presupuestoAcciones button:nth-child(4) {
+.cotizacionAcciones button:nth-child(4) {
   background-color: #FEE2E2;
   color: #DC2626;
 }
 
-.presupuestoModalAcciones {
+.cotizacionModalAcciones {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 8px;
 }
-.presupuestoModalAcciones button {
+.cotizacionModalAcciones button {
   min-height: 40px;
   border: 0;
   border-radius: 8px;
@@ -3584,20 +3685,20 @@
   gap: 8px;
   padding: 0 14px;
 }
-.presupuestoModalAcciones button:nth-child(1) {
+.cotizacionModalAcciones button:nth-child(1) {
   background-color: #F3E8FF;
   color: #7E22CE;
 }
-.presupuestoModalAcciones button:nth-child(2) {
+.cotizacionModalAcciones button:nth-child(2) {
   background-color: #00A63E;
   color: #fff;
 }
-.presupuestoModalAcciones button:nth-child(3) {
+.cotizacionModalAcciones button:nth-child(3) {
   background-color: #FEE2E2;
   color: #DC2626;
 }
 
-.presupuestoModal {
+.cotizacionModal {
   position: fixed;
   inset: 0;
   background-color: rgba(15, 23, 42, 0.5019607843);
@@ -3608,7 +3709,7 @@
   z-index: 20;
 }
 
-.presupuestoModalPanel {
+.cotizacionModalPanel {
   width: min(100%, 420px);
   max-height: calc(100vh - 32px);
   border-radius: 12px;
@@ -3620,17 +3721,17 @@
   overflow: auto;
   padding: 18px;
 }
-.presupuestoModalPanel h2 {
+.cotizacionModalPanel h2 {
   color: #0F172A;
   font-size: 20px;
   font-weight: 700;
 }
-.presupuestoModalPanel > span {
+.cotizacionModalPanel > span {
   color: #4A5579;
   font-size: 14px;
 }
 
-.presupuestoModalCerrar {
+.cotizacionModalCerrar {
   width: 34px;
   height: 34px;
   border: 0;
@@ -3644,12 +3745,12 @@
   margin-left: auto;
 }
 
-.presupuestoModalItems {
+.cotizacionModalItems {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
-.presupuestoModalItems div {
+.cotizacionModalItems div {
   border-radius: 8px;
   background-color: #F8FAFC;
   display: grid;
@@ -3657,16 +3758,16 @@
   gap: 6px 10px;
   padding: 12px;
 }
-.presupuestoModalItems p {
+.cotizacionModalItems p {
   color: #0F172A;
   font-size: 16px;
   font-weight: 700;
 }
-.presupuestoModalItems span {
+.cotizacionModalItems span {
   color: #364153;
   font-size: 14px;
 }
-.presupuestoModalItems strong {
+.cotizacionModalItems strong {
   grid-row: 1/3;
   grid-column: 2;
   color: #0F172A;
@@ -3675,15 +3776,15 @@
 }
 
 @media (max-width: 620px) {
-  .presupuestoNuevoCliente,
-  .presupuestoAcciones,
-  .presupuestoModalAcciones {
+  .cotizacionNuevoCliente,
+  .cotizacionAcciones,
+  .cotizacionModalAcciones {
     grid-template-columns: 1fr;
   }
-  .presupuestoPrecioGrid {
+  .cotizacionPrecioGrid {
     grid-template-columns: 1fr;
   }
-  .presupuestoCardHeader {
+  .cotizacionCardHeader {
     flex-direction: column;
   }
 }
@@ -4550,6 +4651,23 @@
     text-align: left;
   }
 }
+.selectorPorNombre {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+.selectorPorNombre input, .selectorPorNombre select {
+  width: 100%;
+  min-width: 0;
+}
+
+.selectorPorNombreEstado {
+  font-size: 13px;
+  color: #475569;
+}
+
 @font-face {
   font-family: "Roboto";
   src: url("/fonts/Roboto.ttf");

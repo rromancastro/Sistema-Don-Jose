@@ -45,6 +45,17 @@ export const obtenerStockProducto = (producto) => Number(producto.stock_kg ?? pr
 
 export const obtenerTipoStock = (producto) => producto.tipo_stock || "kg"
 
+export const TIPOS_PRODUCTO = {
+    fruta_fresca: "Fruta fresca",
+    deshidratado: "Deshidratado",
+    caja: "Caja",
+    envasado: "Envasado",
+}
+
+export const obtenerTipoProducto = (producto) => producto.tipo_producto || (
+    ["Fruta Fresca", "Fruta Fresta"].includes(producto.categoria) ? "fruta_fresca" : "deshidratado"
+)
+
 export const obtenerPrecioMayorista = (producto) => Number(producto.precio_mayorista ?? producto.mayorista ?? producto.precioMayorista ?? producto.precio_kg ?? producto.precio ?? 0)
 
 export const obtenerPrecioMinorista = (producto) => Number(producto.precio_minorista ?? producto.minorista ?? producto.precioMinorista ?? producto.precio_venta ?? producto.precio ?? 0)
@@ -80,6 +91,7 @@ export const normalizarProducto = (producto = {}) => ({
     categoria: normalizarTexto(producto.categoria),
     stock: obtenerStockProducto(producto),
     tipo_stock: obtenerTipoStock(producto),
+    tipo_producto: obtenerTipoProducto(producto),
     costo: obtenerCostoProducto(producto),
     precio_mayorista: obtenerPrecioMayorista(producto),
     precio_minorista: obtenerPrecioMinorista(producto),

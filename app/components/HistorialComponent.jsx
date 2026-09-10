@@ -107,7 +107,8 @@ export const HistorialComponent = () => {
                 subtitulo: compra.producto || "Producto sin nombre",
                 cantidad: Number(compra.cantidad_kg || 0),
                 monto: Number(compra.total_compra || 0),
-                proveedor: proveedor?.nombre || compra.proveedor || "",
+                costo_pendiente: compra.costo_pendiente === true,
+                proveedor: compra.productor?.nombre || proveedor?.nombre || compra.proveedor || "",
                 tipo_stock: compra.tipo_stock || "kg",
                 textoBusqueda: [
                     "compra",
@@ -206,7 +207,7 @@ export const HistorialComponent = () => {
             </div>
             <div className="historialMeta">
                 <p>{formatearFecha(item.fecha_hora || item.fecha)}</p>
-                <strong>{formatearPrecio(item.monto)}</strong>
+                <strong>{item.costo_pendiente ? "Importe pendiente" : formatearPrecio(item.monto)}</strong>
             </div>
         </article>
     }

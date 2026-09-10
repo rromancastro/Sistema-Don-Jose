@@ -1,6 +1,8 @@
 "use client"
 
 import Link from "next/link"
+import { SelectorProducto } from "./SelectorProducto"
+import { SelectorPorNombre } from "./SelectorPorNombre"
 import { useEffect, useMemo, useState } from "react"
 import { AiOutlinePlus } from "react-icons/ai"
 import { FaArrowLeft, FaCheck, FaRegFileAlt, FaTimes, FaTrashAlt, FaUserPlus } from "react-icons/fa"
@@ -379,16 +381,7 @@ export const VentaComponent = () => {
                         </article>
                     ) : (
                         <>
-                            <select value={clienteId} onChange={(e) => {
-                                setClienteId(e.target.value)
-                                setCreandoCliente(false)
-                            }}>
-                                {
-                                    clientes.map((cliente) => (
-                                        <option key={cliente.id} value={cliente.id}>{cliente.nombre}</option>
-                                    ))
-                                }
-                            </select>
+                            <SelectorPorNombre opciones={clientes} value={clienteId} entidad="Cliente" onChange={id => { setClienteId(id); setCreandoCliente(false) }} />
                             <button type="button" className="ventaCrearClienteBtn" onClick={abrirCrearCliente}>
                                 <FaUserPlus />
                                 Crear Nuevo Cliente
@@ -453,19 +446,7 @@ export const VentaComponent = () => {
                     Agregar Producto
                 </h2>
                 <label>Producto</label>
-                <select value={productoId} onChange={(e) => {
-                    setProductoId(e.target.value)
-                    setCantidadKg("")
-                }}>
-                    <option value="">Seleccionar...</option>
-                    {
-                        productos.map((producto) => (
-                            <option key={producto.id} value={producto.id}>
-                                {obtenerNombreProducto(producto)} (Stock: {obtenerStockProducto(producto)} {formatearTipoStock(obtenerTipoStock(producto), obtenerStockProducto(producto))})
-                            </option>
-                        ))
-                    }
-                </select>
+                <SelectorProducto productos={productos} value={productoId} entidad="Producto" onChange={id => { setProductoId(id); setCantidadKg("") }} />
 
                 {
                     productoSeleccionado && (

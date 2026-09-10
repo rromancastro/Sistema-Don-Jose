@@ -15,6 +15,8 @@ import {
     obtenerNombreProducto,
     obtenerStockProducto,
     obtenerTipoStock,
+    obtenerTipoProducto,
+    TIPOS_PRODUCTO,
 } from "../lib/normalizadores"
 import { NavComponent } from "./NavComponent"
 
@@ -27,6 +29,7 @@ const CATEGORIAS_FRUTA_FRESCA = ["Fruta Fresca", "Fruta Fresta"]
 const CATEGORIAS_DESHIDRATADOS = ["Frutas Secas", "Frutas Frescas", "Mix"]
 
 const productoVacio = {
+    tipo_producto: "deshidratado",
     nombre: "",
     categoria: CATEGORIAS_DESHIDRATADOS[0],
     nuevaCategoria: "",
@@ -164,6 +167,7 @@ export const StockComponent = () => {
             precio_minorista: Number(productoFormulario.precio_minorista || 0),
             stock: Number(productoFormulario.stock || 0),
             tipo_stock: productoFormulario.tipo_stock,
+            tipo_producto: productoFormulario.tipo_producto,
         }
     }
 
@@ -178,12 +182,19 @@ export const StockComponent = () => {
 
         if (!productoParaCrear) return
 
-        const id = await crearDocumento("productos", productoParaCrear)
+        let id
+        try {
+            id = await crearDocumento("productos", productoParaCrear)
+        } catch (error) {
+            alert(error.message || "No se pudo crear el producto. Intentá nuevamente.")
+            return
+        }
 
         setProductos((productosActuales) => [
             normalizarProducto({
                 id,
                 ...productoParaCrear,
+                id_producto: Number(id),
             }),
             ...productosActuales,
         ])
@@ -201,6 +212,7 @@ export const StockComponent = () => {
             nuevaCategoria: "",
             stock: String(obtenerStockProducto(producto)),
             tipo_stock: obtenerTipoStock(producto),
+            tipo_producto: obtenerTipoProducto(producto),
             costo: String(obtenerCostoProducto(producto)),
             precio_mayorista: String(Number(producto.precio_mayorista || 0)),
             precio_minorista: String(Number(producto.precio_minorista || 0)),
@@ -304,6 +316,11 @@ export const StockComponent = () => {
                     </>
                 )
             }
+
+            <label>Tipo de producto</label>
+            <select value={productoFormulario.tipo_producto} onChange={e => cambiarCampo("tipo_producto", e.target.value)} aria-label="Tipo de producto">
+                {Object.entries(TIPOS_PRODUCTO).map(([valor, etiqueta]) => <option key={valor} value={valor}>{etiqueta}</option>)}
+            </select>
 
             <label>Stock</label>
             <input
@@ -495,7 +512,7 @@ export const StockComponent = () => {
                                                                             {obtenerNombreProducto(producto)}
                                                                             {producto.disponible && <FiEye />}
                                                                         </p>
-                                                                        <span>Stock: {obtenerStockProducto(producto)} {obtenerTipoStock(producto)}</span>
+                                                                        <span>{TIPOS_PRODUCTO[obtenerTipoProducto(producto)]} · Código: {producto.id_producto ?? "—"} · Stock: {obtenerStockProducto(producto)} {obtenerTipoStock(producto)}</span>
                                                                     </div>
                                                                     {renderAccionesProducto(producto)}
                                                                 </div>
@@ -547,7 +564,7 @@ export const StockComponent = () => {
                                                 <>
                                                     <div>
                                                         <p>{obtenerNombreProducto(producto)}</p>
-                                                        <span>Stock: {obtenerStockProducto(producto)} {obtenerTipoStock(producto)}</span>
+                                                        <span>{TIPOS_PRODUCTO[obtenerTipoProducto(producto)]} · Código: {producto.id_producto ?? "—"} · Stock: {obtenerStockProducto(producto)} {obtenerTipoStock(producto)}</span>
                                                         <span>Costo: {formatearPrecio(obtenerCostoProducto(producto))}/{obtenerTipoStock(producto)}</span>
                                                     </div>
                                                     {renderAccionesProducto(producto)}

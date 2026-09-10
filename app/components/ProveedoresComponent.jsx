@@ -229,14 +229,14 @@ export const ProveedoresComponent = () => {
                                         <span>{compra.fecha_hora || compra.fecha || "-"}</span>
                                     </div>
                                     <div>
-                                        <strong>{formatearDinero(compra.total_compra)}</strong>
+                                        <strong>{compra.costo_pendiente ? "Importe pendiente" : formatearDinero(compra.total_compra)}</strong>
                                         <span>{formatearCantidad(compra.cantidad_kg)} {formatearTipoStock(compra.tipo_stock, compra.cantidad_kg)}</span>
                                     </div>
                                 </div>
                                 <div className="proveedorCompraDetalle">
-                                    <p>Costo unitario <span>{formatearDinero(compra.costo_kg)}</span></p>
+                                    <p>Costo unitario <span>{compra.costo_pendiente ? "Pendiente" : formatearDinero(compra.costo_kg)}</span></p>
                                     <p>Cantidad <span>{formatearCantidad(compra.cantidad_kg)} {formatearTipoStock(compra.tipo_stock, compra.cantidad_kg)}</span></p>
-                                    <p>Total <span>{formatearDinero(compra.total_compra)}</span></p>
+                                    <p>Total <span>{compra.costo_pendiente ? "Pendiente" : formatearDinero(compra.total_compra)}</span></p>
                                 </div>
                             </article>
                         ))

@@ -1,290 +1,82 @@
 "use client"
 
 import Link from "next/link"
-import { useEffect, useMemo, useState } from "react"
-import { AiOutlinePlus } from "react-icons/ai"
-import { FaArrowLeft, FaCheck, FaTimes } from "react-icons/fa"
-import { obtenerFechaActual } from "../lib/fechas"
-import { actualizarDocumento, crearDocumento, obtenerDocumentos } from "../lib/firebase"
-import {
-    formatearDineroConDecimales as formatearPrecio,
-    formatearTipoStock,
-    normalizarLista,
-    normalizarProducto,
-    normalizarProveedor,
-    obtenerNombreProducto,
-    obtenerStockProducto,
-    obtenerTipoStock,
-} from "../lib/normalizadores"
+import { useEffect, useState } from "react"
+import { FaArrowLeft } from "react-icons/fa"
 import { NavComponent } from "./NavComponent"
-
-const CATEGORIA_COMPRA = "Fruta Fresca"
+import { CompraFrutaFrescaForm } from "./CompraFrutaFrescaForm"
+import { crearDocumento, obtenerDocumentos } from "../lib/firebase"
+import { registrarCompraFrutaFresca } from "../lib/compras"
+import { normalizarLista, normalizarProducto, normalizarProveedor } from "../lib/normalizadores"
 
 export const CompraComponent = () => {
+    const [seccion, setSeccion] = useState("fresca")
     const [productos, setProductos] = useState([])
-    const [proveedores, setProveedores] = useState([])
-    const [productoId, setProductoId] = useState("")
-    const [proveedorId, setProveedorId] = useState("")
-    const [cantidadKg, setCantidadKg] = useState("")
-    const [costoKg, setCostoKg] = useState("")
-    const [creandoProducto, setCreandoProducto] = useState(false)
-    const [nombreNuevoProducto, setNombreNuevoProducto] = useState("")
+    const [productores, setProductores] = useState([])
+    const [vales, setVales] = useState([])
+    const [error, setError] = useState("")
+    const [cargando, setCargando] = useState(true)
 
     useEffect(() => {
-        const cargarDatos = async () => {
-            const [productosData, proveedoresData] = await Promise.all([
-                obtenerDocumentos("productos"),
-                obtenerDocumentos("proveedores"),
-            ])
-
-            const productosNormalizados = normalizarLista(productosData, normalizarProducto)
-            const proveedoresNormalizados = normalizarLista(proveedoresData, normalizarProveedor)
-            const productosFrutaFresca = productosNormalizados.filter((producto) => producto.categoria === CATEGORIA_COMPRA)
-
-            setProductos(productosFrutaFresca)
-            setProveedores(proveedoresNormalizados)
-            setProductoId(productosFrutaFresca[0]?.id || "")
-            setProveedorId(proveedoresNormalizados[0]?.id || "")
+        const cargar = async () => {
+            try {
+                const [productosData, productoresData, comprasData] = await Promise.all([
+                    obtenerDocumentos("productos"), obtenerDocumentos("proveedores"), obtenerDocumentos("compras"),
+                ])
+                setProductos(normalizarLista(productosData, normalizarProducto).filter(p => ["Fruta Fresca", "Fruta Fresta"].includes(p.categoria) && p.tipo_stock === "kg"))
+                setProductores(normalizarLista(productoresData, normalizarProveedor))
+                setVales(comprasData.filter(c => c.numero_vale).sort((a, b) => b.numero_vale.localeCompare(a.numero_vale)))
+            } catch {
+                setError("No se pudieron cargar los datos de compras. Recargá la página para reintentar.")
+            } finally { setCargando(false) }
         }
-
-        cargarDatos()
+        cargar()
     }, [])
 
-    const productoSeleccionado = useMemo(() => {
-        return productos.find((producto) => producto.id === productoId)
-    }, [productos, productoId])
-
-    const proveedorSeleccionado = useMemo(() => {
-        return proveedores.find((proveedor) => proveedor.id === proveedorId)
-    }, [proveedores, proveedorId])
-
-    const tipoStockProducto = productoSeleccionado ? obtenerTipoStock(productoSeleccionado) : "kg"
-    const unidadStockProducto = formatearTipoStock(tipoStockProducto)
-    const cantidadNumerica = Number(cantidadKg || 0)
-    const costoNumerico = Number(costoKg || 0)
-    const totalCompra = cantidadNumerica * costoNumerico
-    const puedeRegistrar = Boolean(productoSeleccionado && proveedorSeleccionado && cantidadNumerica > 0 && costoNumerico > 0)
-
-    const cambiarNumero = (valor, setter) => {
-        if (valor === "") {
-            setter("")
-            return
+    const descargarVale = async compra => {
+        try {
+            const { descargarValePDF } = await import("../lib/valePdf")
+            descargarValePDF(compra)
+        } catch {
+            setError("La compra está guardada, pero no se pudo descargar el PDF. Usá el botón Descargar vale para reintentar.")
         }
-
-        const nuevoValor = Number(valor)
-
-        if (Number.isNaN(nuevoValor)) return
-
-        const valorNormalizado = setter === setCantidadKg && tipoStockProducto === "unidad" ? Math.floor(nuevoValor) : nuevoValor
-
-        setter(String(Math.max(valorNormalizado, 0)))
     }
 
-    const abrirCrearProducto = () => {
-        setCreandoProducto(true)
-        setNombreNuevoProducto("")
+    const guardarFresca = async datos => {
+        const compra = await registrarCompraFrutaFresca(datos)
+        setVales(actuales => [compra, ...actuales])
+        setProductos(actuales => actuales.map(p => p.id === compra.producto_id ? { ...p, stock: p.stock + compra.cantidad_kg, ...(Object.hasOwn(p, "stock_kg") ? { stock_kg: p.stock + compra.cantidad_kg } : {}) } : p))
+        setError("")
+        await descargarVale(compra)
     }
 
-    const cancelarCrearProducto = () => {
-        setCreandoProducto(false)
-        setNombreNuevoProducto("")
-    }
-
-    const guardarNuevoProducto = async () => {
-        const nombreProducto = nombreNuevoProducto.trim()
-
-        if (!nombreProducto) return
-
-        const productoParaCrear = {
-            alerta_stock: 10,
-            categoria: CATEGORIA_COMPRA,
-            costo: 0,
-            disponible: true,
-            nombre: nombreProducto,
-            precio_mayorista: 0,
-            precio_minorista: 0,
-            stock: 0,
-            tipo_stock: "kg",
-        }
-
-        const id = await crearDocumento("productos", productoParaCrear)
-
-        setProductos((productosActuales) => [
-            normalizarProducto({
-                id,
-                ...productoParaCrear,
-            }),
-            ...productosActuales,
-        ])
-        setProductoId(id)
-        cancelarCrearProducto()
-    }
-
-    const registrarCompra = async () => {
-        if (!puedeRegistrar) return
-
-        const compraParaCrear = {
-            cantidad_kg: cantidadNumerica,
-            costo_kg: costoNumerico,
-            fecha: obtenerFechaActual(),
-            producto: obtenerNombreProducto(productoSeleccionado),
-            proveedor_id: proveedorSeleccionado.id,
-            tipo_stock: tipoStockProducto,
-            total_compra: totalCompra,
-        }
-
-        await crearDocumento("compras", compraParaCrear)
-
-        const stockActualizado = obtenerStockProducto(productoSeleccionado) + cantidadNumerica
-
-        await actualizarDocumento("productos", productoSeleccionado.id, {
-            categoria: CATEGORIA_COMPRA,
-            costo: costoNumerico,
-            disponible: true,
-            stock: stockActualizado,
-            tipo_stock: tipoStockProducto,
-        })
-
-        await actualizarDocumento("proveedores", proveedorSeleccionado.id, {
-            compras: Number(proveedorSeleccionado.compras || 0) + 1,
-        })
-
-        setProductos((productosActuales) => productosActuales.map((producto) => {
-            if (producto.id !== productoSeleccionado.id) return producto
-
-            return normalizarProducto({
-                ...producto,
-                categoria: CATEGORIA_COMPRA,
-                costo: costoNumerico,
-                disponible: true,
-                stock: stockActualizado,
-                tipo_stock: tipoStockProducto,
-            })
-        }))
-
-        setProveedores((proveedoresActuales) => proveedoresActuales.map((proveedor) => {
-            if (proveedor.id !== proveedorSeleccionado.id) return proveedor
-
-            return normalizarProveedor({
-                ...proveedor,
-                compras: Number(proveedor.compras || 0) + 1,
-            })
-        }))
-
-        setCantidadKg("")
-        setCostoKg("")
+    const crearProducto = async nombre => {
+        const producto = { nombre: nombre.trim(), categoria: "Fruta Fresca", tipo_producto: "fruta_fresca", stock: 0, tipo_stock: "kg", costo: 0, precio_mayorista: 0, precio_minorista: 0, alerta_stock: 10, disponible: true }
+        const id = await crearDocumento("productos", producto)
+        setProductos(actuales => [{ ...producto, id, id_producto: Number(id) }, ...actuales])
+        return id
     }
 
     return <section>
-        <NavComponent bgColor="#F54900" >
-            <Link href={'/'}>
-                <FaArrowLeft />
-            </Link>
-            <h1>Nueva Compra</h1>
-        </NavComponent>
-
+        <NavComponent bgColor="#F54900"><Link href="/"><FaArrowLeft /></Link><h1>Nueva Compra</h1></NavComponent>
         <div id="compraContainer">
-            <div className="compraCampo">
-                <label>Producto ({CATEGORIA_COMPRA})</label>
-                {
-                    creandoProducto ? (
-                        <article className="compraCrearProducto">
-                            <div>
-                                <p>Nuevo Producto</p>
-                                <button type="button" onClick={cancelarCrearProducto} aria-label="Cancelar producto">
-                                    <FaTimes />
-                                </button>
-                            </div>
-                            <form onSubmit={(e) => {
-                                e.preventDefault()
-                                guardarNuevoProducto()
-                            }}>
-                                <input
-                                    type="text"
-                                    value={nombreNuevoProducto}
-                                    onChange={(e) => setNombreNuevoProducto(e.target.value)}
-                                    placeholder="Nombre del producto (ej: Peras Frescas)"
-                                    aria-label="Nombre del producto"
-                                />
-                                <button type="submit">
-                                    <FaCheck />
-                                    Crear Producto
-                                </button>
-                            </form>
-                        </article>
-                    ) : (
-                        <>
-                            <select value={productoId} onChange={(e) => {
-                                setProductoId(e.target.value)
-                                setCantidadKg("")
-                            }}>
-                                {
-                                    productos.length === 0 ? (
-                                        <option value="">Sin productos</option>
-                                    ) : (
-                                        productos.map((producto) => (
-                                            <option key={producto.id} value={producto.id}>{obtenerNombreProducto(producto)}</option>
-                                        ))
-                                    )
-                                }
-                            </select>
-                            <button type="button" className="compraCrearProductoBtn  bdRadius" onClick={abrirCrearProducto}>
-                                <AiOutlinePlus />
-                                Crear Nuevo Producto
-                            </button>
-                        </>
-                    )
-                }
+            <div className="compraTabs" role="tablist" aria-label="Tipo de compra">
+                <button id="tab-fresca" type="button" role="tab" aria-selected={seccion === "fresca"} aria-controls="panel-fresca" onClick={() => setSeccion("fresca")}>Fruta Fresca</button>
+                <button id="tab-deshidratados" type="button" role="tab" aria-selected={seccion === "deshidratados"} aria-controls="panel-deshidratados" onClick={() => setSeccion("deshidratados")}>Deshidratados</button>
             </div>
-
-            <div className="compraCampo">
-                <label>Cantidad ({unidadStockProducto})</label>
-                <input
-                    type="number"
-                    min="0"
-                    step={tipoStockProducto === "unidad" ? "1" : "0.01"}
-                    value={cantidadKg}
-                    onChange={(e) => cambiarNumero(e.target.value, setCantidadKg)}
-                    placeholder="0"
-                />
+            {error && <p role="alert">{error}</p>}
+            <div id="panel-fresca" role="tabpanel" aria-labelledby="tab-fresca" hidden={seccion !== "fresca"}>
+                {cargando ? <p>Cargando productos y productores...</p> : <CompraFrutaFrescaForm productos={productos} productores={productores} onGuardar={guardarFresca} onCrearProducto={crearProducto} />}
+                <h2>Vales registrados</h2>
+                {vales.length === 0 && <p>No hay vales registrados.</p>}
+                {vales.map(vale => <article className="compraValeGuardado" key={vale.id}>
+                    <span>Vale {vale.numero_vale} · {vale.fecha} · {vale.productor?.nombre} · {vale.producto}</span>
+                    <button type="button" onClick={() => descargarVale(vale)}>Descargar vale</button>
+                </article>)}
             </div>
-
-            <div className="compraCampo">
-                <label>Proveedor</label>
-                <select value={proveedorId} onChange={(e) => setProveedorId(e.target.value)}>
-                    {
-                        proveedores.length === 0 ? (
-                            <option value="">Sin proveedores</option>
-                        ) : (
-                            proveedores.map((proveedor) => (
-                                <option key={proveedor.id} value={proveedor.id}>{proveedor.nombre}</option>
-                            ))
-                        )
-                    }
-                </select>
+            <div id="panel-deshidratados" role="tabpanel" aria-labelledby="tab-deshidratados" hidden={seccion !== "deshidratados"}>
+                <div className="compraSeccionPendiente"><h2>Compras de Deshidratados</h2><p>Sección preparada. El formulario de compra se completará próximamente.</p></div>
             </div>
-
-            <div className="compraCampo">
-                <label>Costo por {unidadStockProducto} ($)</label>
-                <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={costoKg}
-                    onChange={(e) => cambiarNumero(e.target.value, setCostoKg)}
-                    placeholder="0.00"
-                />
-            </div>
-
-            <div className="compraTotal">
-                <p>Total de la Compra</p>
-                <span>{formatearPrecio(totalCompra)}</span>
-            </div>
-
-            <button type="button" className="compraRegistrarBtn" onClick={registrarCompra} disabled={!puedeRegistrar}>
-                <FaCheck />
-                Registrar Compra
-            </button>
         </div>
     </section>
 }

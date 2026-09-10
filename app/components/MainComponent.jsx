@@ -28,7 +28,7 @@ const COLECCIONES_BACKUP = [
     "compras",
     "ventas",
     "comprobantes_venta",
-    "presupuestos",
+    "cotizaciones",
     "transformaciones",
     "recordatorios",
     "notas",
@@ -564,9 +564,9 @@ export const MainComponent = () => {
                     <FaUserCheck />
                     <p>Clientes</p>
                 </Link>
-                <Link href={'/presupuestos'} className="gestionCard bdRadius animClick boxShadow">
+                <Link href={'/cotizaciones'} className="gestionCard bdRadius animClick boxShadow">
                     <FiClipboard />
-                    <p>Presupuestos</p>
+                    <p>Cotizaciones</p>
                 </Link>
                 <Link href={'/documentos'} className="gestionCard bdRadius animClick boxShadow">
                     <LuFileSpreadsheet />

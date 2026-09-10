@@ -6,10 +6,11 @@
 @use './components/compra';
 @use './components/stock';
 @use './components/documentos';
-@use './components/presupuestos';
+@use './components/cotizaciones';
 @use './components/transformaciones';
 @use './components/historial';
 @use './components/reportes';
+@use './components/selector-por-nombre';
 
 @font-face {
     font-family: 'Roboto';

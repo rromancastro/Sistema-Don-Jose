@@ -1,11 +1,13 @@
 "use client"
 
 import Link from "next/link"
+import { SelectorProducto } from "./SelectorProducto"
+import { SelectorPorNombre } from "./SelectorPorNombre"
 import { useEffect, useMemo, useState } from "react"
 import { AiOutlinePlus } from "react-icons/ai"
 import { FaArrowLeft, FaCheck, FaDownload, FaEye, FaShoppingCart, FaTimes, FaTrashAlt, FaUserPlus } from "react-icons/fa"
 import { FiFileText } from "react-icons/fi"
-import { descargarPresupuestoPDF } from "../lib/documentosPdf"
+import { descargarCotizacionPDF } from "../lib/documentosPdf"
 import { formatearFecha, formatearFechaHora, obtenerFechaActual } from "../lib/fechas"
 import { actualizarDocumento, crearDocumento, eliminarDocumento, obtenerDocumentos } from "../lib/firebase"
 import {
@@ -29,11 +31,17 @@ const clienteVacio = {
     contacto: "",
 }
 
-export const PresupuestosComponent = () => {
+const camposContacto = [
+    ["telefono", "Teléfono"], ["celular", "Celular"], ["email", "Email"],
+    ["direccion", "Dirección"], ["barrio", "Barrio"], ["ciudad", "Ciudad"],
+    ["provincia", "Provincia / Estado"], ["codigo_postal", "Código postal"],
+]
+
+export const CotizacionesComponent = () => {
     const [clientes, setClientes] = useState([])
     const [productos, setProductos] = useState([])
-    const [presupuestos, setPresupuestos] = useState([])
-    const [creandoPresupuesto, setCreandoPresupuesto] = useState(false)
+    const [cotizaciones, setCotizaciones] = useState([])
+    const [creandoCotizacion, setCreandoCotizacion] = useState(false)
     const [creandoCliente, setCreandoCliente] = useState(false)
     const [clienteId, setClienteId] = useState("")
     const [nuevoCliente, setNuevoCliente] = useState(clienteVacio)
@@ -41,21 +49,27 @@ export const PresupuestosComponent = () => {
     const [cantidad, setCantidad] = useState("")
     const [tipoPrecio, setTipoPrecio] = useState("minorista")
     const [items, setItems] = useState([])
-    const [presupuestoActivo, setPresupuestoActivo] = useState(null)
+    const [cotizacionActivo, setCotizacionActivo] = useState(null)
+    const [datosCotizacion, setDatosCotizacion] = useState({ fecha: "", vendedor: "", observaciones: "" })
+    const [contactoCotizacion, setContactoCotizacion] = useState({})
+    const [guardando, setGuardando] = useState(false)
+    const [errorCotizacion, setErrorCotizacion] = useState("")
+
+    const cambiarDatoCotizacion = (campo, valor) => setDatosCotizacion(actual => ({ ...actual, [campo]: valor }))
 
     useEffect(() => {
         const cargarDatos = async () => {
-            const [clientesData, productosData, presupuestosData] = await Promise.all([
+            const [clientesData, productosData, cotizacionesData] = await Promise.all([
                 obtenerDocumentos("clientes"),
                 obtenerDocumentos("productos"),
-                obtenerDocumentos("presupuestos"),
+                obtenerDocumentos("cotizaciones"),
             ])
 
             const clientesNormalizados = normalizarLista(clientesData, normalizarCliente)
 
             setClientes(clientesNormalizados)
             setProductos(normalizarLista(productosData, normalizarProducto))
-            setPresupuestos(presupuestosData)
+            setCotizaciones(cotizacionesData)
             setClienteId(clientesNormalizados[0]?.id || "")
         }
 
@@ -70,11 +84,11 @@ export const PresupuestosComponent = () => {
         return productos.find((producto) => producto.id === productoId)
     }, [productos, productoId])
 
-    const presupuestosPendientes = useMemo(() => {
-        return presupuestos
-            .filter((presupuesto) => (presupuesto.estado || "pendiente") === "pendiente")
+    const cotizacionesPendientes = useMemo(() => {
+        return cotizaciones
+            .filter((cotizacion) => (cotizacion.estado || "pendiente") === "pendiente")
             .sort((a, b) => String(b.fecha || "").localeCompare(String(a.fecha || "")))
-    }, [presupuestos])
+    }, [cotizaciones])
 
     const tipoStockProducto = productoSeleccionado ? obtenerTipoStock(productoSeleccionado) : "kg"
     const cantidadNumerica = Number(cantidad || 0)
@@ -83,15 +97,18 @@ export const PresupuestosComponent = () => {
     const precioMinorista = productoSeleccionado ? obtenerPrecioMinorista(productoSeleccionado) : 0
     const precioProducto = tipoPrecio === "mayorista" ? precioMayorista : precioMinorista
     const costoProducto = productoSeleccionado ? obtenerCostoProducto(productoSeleccionado) : 0
-    const totalPresupuesto = items.reduce((total, item) => total + Number(item.subtotal || 0), 0)
+    const totalCotizacion = items.reduce((total, item) => total + Number(item.subtotal || 0), 0)
 
-    const abrirCrearPresupuesto = () => {
-        setCreandoPresupuesto(true)
-        setPresupuestoActivo(null)
+    const abrirCrearCotizacion = () => {
+        setDatosCotizacion({ fecha: obtenerFechaActual(), vendedor: "", observaciones: "" })
+        setContactoCotizacion({})
+        setErrorCotizacion("")
+        setCreandoCotizacion(true)
+        setCotizacionActivo(null)
     }
 
-    const cancelarCrearPresupuesto = () => {
-        setCreandoPresupuesto(false)
+    const cancelarCrearCotizacion = () => {
+        setCreandoCotizacion(false)
         setCreandoCliente(false)
         setNuevoCliente(clienteVacio)
         setProductoId("")
@@ -139,6 +156,7 @@ export const PresupuestosComponent = () => {
             ...clientesActuales,
         ])
         setClienteId(id)
+        setContactoCotizacion({})
         setCreandoCliente(false)
         setNuevoCliente(clienteVacio)
     }
@@ -147,7 +165,8 @@ export const PresupuestosComponent = () => {
         if (!productoSeleccionado || cantidadNumerica <= 0) return
 
         const item = {
-            id: `${productoSeleccionado.id}-${Date.now()}`,
+            id: crypto.randomUUID(),
+            id_producto: productoSeleccionado.id_producto || "",
             producto_id: productoSeleccionado.id,
             nombre: obtenerNombreProducto(productoSeleccionado),
             cantidad_kg: cantidadNumerica,
@@ -169,49 +188,64 @@ export const PresupuestosComponent = () => {
         setItems((itemsActuales) => itemsActuales.filter((item) => item.id !== itemId))
     }
 
-    const guardarPresupuesto = async () => {
-        if (!clienteSeleccionado || items.length === 0) return
+    const guardarCotizacion = async () => {
+        if (guardando) return
+        if (!clienteSeleccionado || items.length === 0 || !datosCotizacion.fecha || !datosCotizacion.vendedor.trim()) {
+            setErrorCotizacion("Completá fecha y vendedor, seleccioná un cliente y agregá al menos un producto.")
+            return
+        }
 
-        const presupuestoParaCrear = {
+        const cotizacionParaCrear = {
             cliente: {
                 id: clienteSeleccionado.id,
                 nombre: clienteSeleccionado.nombre || "",
                 telefono: clienteSeleccionado.telefono || "",
                 email: clienteSeleccionado.email || "",
+                ...Object.fromEntries(camposContacto.map(([campo]) => [campo, String(contactoCotizacion[campo] ?? clienteSeleccionado[campo] ?? "").trim()])),
             },
             cliente_id: clienteSeleccionado.id,
             estado: "pendiente",
-            fecha: obtenerFechaActual(),
+            ...Object.fromEntries(Object.entries(datosCotizacion).map(([campo, valor]) => [campo, valor.trim()])),
             items,
-            total: totalPresupuesto,
+            total: totalCotizacion,
         }
 
-        const id = await crearDocumento("presupuestos", presupuestoParaCrear)
+        setGuardando(true)
+        setErrorCotizacion("")
+        try {
+            const id = await crearDocumento("cotizaciones", cotizacionParaCrear)
 
-        setPresupuestos((presupuestosActuales) => [
-            {
-                id,
-                ...presupuestoParaCrear,
-            },
-            ...presupuestosActuales,
-        ])
-        cancelarCrearPresupuesto()
+            setCotizaciones((cotizacionesActuales) => [
+                {
+                    id,
+                    ...cotizacionParaCrear,
+                    numero: id,
+                },
+                ...cotizacionesActuales,
+            ])
+            cancelarCrearCotizacion()
+        } catch {
+            setErrorCotizacion("No se pudo guardar la cotización. Intentá nuevamente.")
+        } finally {
+            setGuardando(false)
+        }
     }
 
-    const eliminarPresupuesto = async (presupuestoId) => {
-        await eliminarDocumento("presupuestos", presupuestoId)
-        setPresupuestos((presupuestosActuales) => presupuestosActuales.filter((presupuesto) => presupuesto.id !== presupuestoId))
-        setPresupuestoActivo((presupuestoActual) => presupuestoActual?.id === presupuestoId ? null : presupuestoActual)
+    const eliminarCotizacion = async (cotizacionId) => {
+        await eliminarDocumento("cotizaciones", cotizacionId)
+        setCotizaciones((cotizacionesActuales) => cotizacionesActuales.filter((cotizacion) => cotizacion.id !== cotizacionId))
+        setCotizacionActivo((cotizacionActual) => cotizacionActual?.id === cotizacionId ? null : cotizacionActual)
     }
 
-    const convertirPresupuesto = async (presupuesto) => {
+    const convertirCotizacion = async (cotizacion) => {
         const fechaVenta = obtenerFechaActual()
         const fechaHoraVenta = formatearFechaHora(new Date())
-        const totalVenta = Number(presupuesto.total || 0)
-        const totalGanancia = (presupuesto.items || []).reduce((total, item) => total + Number(item.ganancia || 0), 0)
-        const cliente = clientes.find((clienteItem) => clienteItem.id === presupuesto.cliente_id) || {
-            ...(presupuesto.cliente || {}),
-            id: presupuesto.cliente_id || presupuesto.cliente?.id || "",
+        const totalVenta = Number(cotizacion.total || 0)
+        const totalGanancia = (cotizacion.items || []).reduce((total, item) => total + Number(item.ganancia || 0), 0)
+        const cliente = {
+            ...(clientes.find((clienteItem) => clienteItem.id === cotizacion.cliente_id) || {}),
+            ...(cotizacion.cliente || {}),
+            id: cotizacion.cliente_id || cotizacion.cliente?.id || "",
         }
         const { clienteActualizado, comprobante } = await registrarVenta({
             cliente,
@@ -220,23 +254,23 @@ export const PresupuestosComponent = () => {
             fechaHoraVenta,
             fechaVenta,
             gananciaTotal: totalGanancia,
-            items: presupuesto.items || [],
+            items: cotizacion.items || [],
             metodoPago: "efectivo",
             montoDebe: 0,
             montoPagado: totalVenta,
-            observaciones: "",
+            observaciones: cotizacion.observaciones || "",
             total: totalVenta,
             extraComprobante: {
-                origen_presupuesto_id: presupuesto.id,
+                origen_cotizacion_id: cotizacion.id,
             },
             extraVenta: {
-                origen_presupuesto_id: presupuesto.id,
+                origen_cotizacion_id: cotizacion.id,
             },
         })
 
-        if (presupuesto.cliente_id) {
+        if (cotizacion.cliente_id) {
             setClientes((clientesActuales) => clientesActuales.map((clienteItem) => {
-                if (clienteItem.id !== presupuesto.cliente_id) return clienteItem
+                if (clienteItem.id !== cotizacion.cliente_id) return clienteItem
 
                 return normalizarCliente({
                     ...clienteItem,
@@ -245,23 +279,31 @@ export const PresupuestosComponent = () => {
             }))
         }
 
-        const presupuestoActualizado = {
+        const cotizacionActualizado = {
             comprobante_id: comprobante.id,
             estado: "convertido",
             fecha_conversion: fechaVenta,
             venta_ids: comprobante.venta_ids,
         }
 
-        await actualizarDocumento("presupuestos", presupuesto.id, presupuestoActualizado)
-        setPresupuestos((presupuestosActuales) => presupuestosActuales.map((presupuestoItem) => {
-            if (presupuestoItem.id !== presupuesto.id) return presupuestoItem
+        await actualizarDocumento("cotizaciones", cotizacion.id, cotizacionActualizado)
+        setCotizaciones((cotizacionesActuales) => cotizacionesActuales.map((cotizacionItem) => {
+            if (cotizacionItem.id !== cotizacion.id) return cotizacionItem
 
             return {
-                ...presupuestoItem,
-                ...presupuestoActualizado,
+                ...cotizacionItem,
+                ...cotizacionActualizado,
             }
         }))
-        setPresupuestoActivo(null)
+        setCotizacionActivo(null)
+    }
+
+    const descargarCotizacion = async (cotizacion) => {
+        try {
+            await descargarCotizacionPDF(cotizacion)
+        } catch {
+            alert("No se pudo generar el PDF. Intentá nuevamente.")
+        }
     }
 
     return <section>
@@ -269,28 +311,39 @@ export const PresupuestosComponent = () => {
             <Link href={'/'}>
                 <FaArrowLeft />
             </Link>
-            <h1>Presupuestos</h1>
-            <AiOutlinePlus color="#9810FA" onClick={abrirCrearPresupuesto} />
+            <h1>Cotizaciones</h1>
+            <AiOutlinePlus color="#9810FA" onClick={abrirCrearCotizacion} />
         </NavComponent>
 
-        <div id="presupuestosContainer">
+        <div id="cotizacionesContainer">
             {
-                creandoPresupuesto && (
-                    <article className="presupuestoForm">
-                        <div className="presupuestoFormHeader">
+                creandoCotizacion && (
+                    <article className="cotizacionForm">
+                        <div className="cotizacionFormHeader">
                             <h2>
                                 <FiFileText />
-                                Nuevo Presupuesto
+                                Nueva Cotización
                             </h2>
-                            <button type="button" onClick={cancelarCrearPresupuesto} aria-label="Cerrar nuevo presupuesto">
+                            <button type="button" onClick={cancelarCrearCotizacion} aria-label="Cerrar nueva cotización">
                                 <FaTimes />
                             </button>
                         </div>
 
+                        <div className="cotizacionDatosGrid">
+                            <label>Número de cotización
+                                <input value="Se asigna automáticamente al guardar" readOnly />
+                            </label>
+                            <label>Fecha *
+                                <input type="date" value={datosCotizacion.fecha} onChange={e => cambiarDatoCotizacion("fecha", e.target.value)} />
+                            </label>
+                            <label>Vendedor *
+                                <input value={datosCotizacion.vendedor} maxLength={100} onChange={e => cambiarDatoCotizacion("vendedor", e.target.value)} />
+                            </label>
+                        </div>
                         <label>Cliente</label>
                         {
                             creandoCliente ? (
-                                <div className="presupuestoNuevoCliente">
+                                <div className="cotizacionNuevoCliente">
                                     <input
                                         type="text"
                                         value={nuevoCliente.nombre}
@@ -310,14 +363,8 @@ export const PresupuestosComponent = () => {
                                 </div>
                             ) : (
                                 <>
-                                    <select value={clienteId} onChange={(e) => setClienteId(e.target.value)}>
-                                        {
-                                            clientes.map((cliente) => (
-                                                <option key={cliente.id} value={cliente.id}>{cliente.nombre}</option>
-                                            ))
-                                        }
-                                    </select>
-                                    <button type="button" className="presupuestoCrearClienteBtn" onClick={() => setCreandoCliente(true)}>
+                                    <SelectorPorNombre opciones={clientes} value={clienteId} entidad="Cliente" onChange={id => { setClienteId(id); setContactoCotizacion({}) }} />
+                                    <button type="button" className="cotizacionCrearClienteBtn" onClick={() => setCreandoCliente(true)}>
                                         <FaUserPlus />
                                         Crear Nuevo Cliente
                                     </button>
@@ -325,27 +372,21 @@ export const PresupuestosComponent = () => {
                             )
                         }
 
-                        <div className="presupuestoSeparador" />
+                        {clienteSeleccionado && <div className="cotizacionDatosGrid">
+                            {camposContacto.map(([campo, etiqueta]) => <label key={campo}>{etiqueta}
+                                <input value={contactoCotizacion[campo] ?? clienteSeleccionado[campo] ?? ""}
+                                    maxLength={campo === "direccion" ? 200 : 100}
+                                    onChange={e => setContactoCotizacion(actual => ({ ...actual, [campo]: e.target.value }))} />
+                            </label>)}
+                        </div>}
+                        <div className="cotizacionSeparador" />
 
                         <label>Agregar Producto</label>
-                        <select value={productoId} onChange={(e) => {
-                            setProductoId(e.target.value)
-                            setCantidad("")
-                            setTipoPrecio("minorista")
-                        }}>
-                            <option value="">Seleccionar...</option>
-                            {
-                                productos.map((producto) => (
-                                    <option key={producto.id} value={producto.id}>
-                                        {obtenerNombreProducto(producto)}
-                                    </option>
-                                ))
-                            }
-                        </select>
+                        <SelectorProducto productos={productos} value={productoId} entidad="Producto" onChange={id => { setProductoId(id); setCantidad(""); setTipoPrecio("minorista") }} />
 
                         {
                             productoSeleccionado && (
-                                <div className="presupuestoProductoConfig">
+                                <div className="cotizacionProductoConfig">
                                     <input
                                         type="number"
                                         min="0"
@@ -355,17 +396,17 @@ export const PresupuestosComponent = () => {
                                         onChange={(e) => cambiarCantidad(e.target.value)}
                                         placeholder={`Cantidad (${formatearTipoStock(tipoStockProducto)})`}
                                     />
-                                    <div className="presupuestoPrecioGrid">
+                                    <div className="cotizacionPrecioGrid">
                                         <button
                                             type="button"
-                                            className={tipoPrecio === "mayorista" ? "presupuestoPrecioActivo" : ""}
+                                            className={tipoPrecio === "mayorista" ? "cotizacionPrecioActivo" : ""}
                                             onClick={() => setTipoPrecio("mayorista")}
                                         >
                                             Mayorista {formatearPrecio(precioMayorista)}
                                         </button>
                                         <button
                                             type="button"
-                                            className={tipoPrecio === "minorista" ? "presupuestoPrecioActivo" : ""}
+                                            className={tipoPrecio === "minorista" ? "cotizacionPrecioActivo" : ""}
                                             onClick={() => setTipoPrecio("minorista")}
                                         >
                                             Minorista {formatearPrecio(precioMinorista)}
@@ -381,7 +422,7 @@ export const PresupuestosComponent = () => {
 
                         {
                             items.length > 0 && (
-                                <div className="presupuestoItemsForm">
+                                <div className="cotizacionItemsForm">
                                     {
                                         items.map((item) => (
                                             <div key={item.id}>
@@ -397,39 +438,43 @@ export const PresupuestosComponent = () => {
                             )
                         }
 
-                        <div className="presupuestoFormFooter">
+                        <label>Observaciones
+                            <textarea rows={3} maxLength={5000} value={datosCotizacion.observaciones} onChange={e => cambiarDatoCotizacion("observaciones", e.target.value)} />
+                        </label>
+                        {errorCotizacion && <p role="alert">{errorCotizacion}</p>}
+                        <div className="cotizacionFormFooter">
                             <span>Total</span>
-                            <strong>{formatearPrecio(totalPresupuesto)}</strong>
+                            <strong>{formatearPrecio(totalCotizacion)}</strong>
                         </div>
 
-                        <button type="button" className="presupuestoGuardarBtn" onClick={guardarPresupuesto} disabled={!clienteSeleccionado || items.length === 0}>
+                        <button type="button" className="cotizacionGuardarBtn" onClick={guardarCotizacion} disabled={guardando || !clienteSeleccionado || items.length === 0}>
                             <FaCheck />
-                            Guardar Presupuesto
+                            Guardar Cotización
                         </button>
                     </article>
                 )
             }
 
-            <h2 className="presupuestosTitulo">Pendientes</h2>
+            <h2 className="cotizacionesTitulo">Pendientes</h2>
 
-            <div className="presupuestosLista">
+            <div className="cotizacionesLista">
                 {
-                    presupuestosPendientes.length === 0 ? (
-                        <p className="presupuestosVacio">No hay presupuestos pendientes</p>
+                    cotizacionesPendientes.length === 0 ? (
+                        <p className="cotizacionesVacio">No hay cotizaciones pendientes</p>
                     ) : (
-                        presupuestosPendientes.map((presupuesto) => (
-                            <article key={presupuesto.id} className="presupuestoCard">
-                                <div className="presupuestoCardHeader">
+                        cotizacionesPendientes.map((cotizacion) => (
+                            <article key={cotizacion.id} className="cotizacionCard">
+                                <div className="cotizacionCardHeader">
                                     <div>
-                                        <h3>{presupuesto.cliente?.nombre || "Cliente sin nombre"}</h3>
-                                        <span>{formatearFecha(presupuesto.fecha)}</span>
+                                        <h3>{cotizacion.cliente?.nombre || "Cliente sin nombre"}</h3>
+                                        <span>N° {cotizacion.numero} · {formatearFecha(cotizacion.fecha)}</span>
                                     </div>
-                                    <strong>{formatearPrecio(presupuesto.total)}</strong>
+                                    <strong>{formatearPrecio(cotizacion.total)}</strong>
                                 </div>
 
-                                <div className="presupuestoItems">
+                                <div className="cotizacionItems">
                                     {
-                                        (presupuesto.items || []).map((item) => (
+                                        (cotizacion.items || []).map((item) => (
                                             <div key={item.id || item.producto_id}>
                                                 <span>{item.nombre} ({item.cantidad_kg} {formatearTipoStock(item.tipo_stock, item.cantidad_kg)})</span>
                                                 <strong>{formatearPrecio(item.subtotal)}</strong>
@@ -438,20 +483,20 @@ export const PresupuestosComponent = () => {
                                     }
                                 </div>
 
-                                <div className="presupuestoAcciones">
-                                    <button type="button" onClick={() => setPresupuestoActivo(presupuesto)}>
+                                <div className="cotizacionAcciones">
+                                    <button type="button" onClick={() => setCotizacionActivo(cotizacion)}>
                                         <FaEye />
                                         Ver
                                     </button>
-                                    <button type="button" onClick={() => descargarPresupuestoPDF(presupuesto)}>
+                                    <button type="button" onClick={() => descargarCotizacion(cotizacion)}>
                                         <FaDownload />
                                         PDF
                                     </button>
-                                    <button type="button" onClick={() => convertirPresupuesto(presupuesto)}>
+                                    <button type="button" onClick={() => convertirCotizacion(cotizacion)}>
                                         <FaShoppingCart />
                                         Convertir
                                     </button>
-                                    <button type="button" onClick={() => eliminarPresupuesto(presupuesto.id)}>
+                                    <button type="button" onClick={() => eliminarCotizacion(cotizacion.id)}>
                                         <FaTrashAlt />
                                         Eliminar
                                     </button>
@@ -464,17 +509,20 @@ export const PresupuestosComponent = () => {
         </div>
 
         {
-            presupuestoActivo && (
-                <div className="presupuestoModal">
-                    <div className="presupuestoModalPanel">
-                        <button type="button" className="presupuestoModalCerrar" onClick={() => setPresupuestoActivo(null)} aria-label="Cerrar presupuesto">
+            cotizacionActivo && (
+                <div className="cotizacionModal">
+                    <div className="cotizacionModalPanel">
+                        <button type="button" className="cotizacionModalCerrar" onClick={() => setCotizacionActivo(null)} aria-label="Cerrar cotización">
                             <FaTimes />
                         </button>
-                        <h2>{presupuestoActivo.cliente?.nombre || "Cliente sin nombre"}</h2>
-                        <span>{formatearFecha(presupuestoActivo.fecha)}</span>
-                        <div className="presupuestoModalItems">
+                        <h2>{cotizacionActivo.cliente?.nombre || "Cliente sin nombre"}</h2>
+                        <p>Cotización N° {cotizacionActivo.numero} · Vendedor: {cotizacionActivo.vendedor}</p>
+                        {camposContacto.map(([campo, etiqueta]) => cotizacionActivo.cliente?.[campo] && <p key={campo}>{etiqueta}: {cotizacionActivo.cliente[campo]}</p>)}
+                        {cotizacionActivo.observaciones && <p className="cotizacionObservaciones">Observaciones: {cotizacionActivo.observaciones}</p>}
+                        <span>{formatearFecha(cotizacionActivo.fecha)}</span>
+                        <div className="cotizacionModalItems">
                             {
-                                (presupuestoActivo.items || []).map((item) => (
+                                (cotizacionActivo.items || []).map((item) => (
                                     <div key={item.id || item.producto_id}>
                                         <p>{item.nombre}</p>
                                         <span>{item.cantidad_kg} {formatearTipoStock(item.tipo_stock, item.cantidad_kg)} x {formatearPrecio(item.precio_unitario)}</span>
@@ -483,20 +531,20 @@ export const PresupuestosComponent = () => {
                                 ))
                             }
                         </div>
-                        <div className="presupuestoModalTotal">
+                        <div className="cotizacionModalTotal">
                             <span>Total</span>
-                            <strong>{formatearPrecio(presupuestoActivo.total)}</strong>
+                            <strong>{formatearPrecio(cotizacionActivo.total)}</strong>
                         </div>
-                        <div className="presupuestoModalAcciones">
-                            <button type="button" onClick={() => descargarPresupuestoPDF(presupuestoActivo)}>
+                        <div className="cotizacionModalAcciones">
+                            <button type="button" onClick={() => descargarCotizacion(cotizacionActivo)}>
                                 <FaDownload />
                                 Descargar PDF
                             </button>
-                            <button type="button" onClick={() => convertirPresupuesto(presupuestoActivo)}>
+                            <button type="button" onClick={() => convertirCotizacion(cotizacionActivo)}>
                                 <FaShoppingCart />
                                 Convertir
                             </button>
-                            <button type="button" onClick={() => eliminarPresupuesto(presupuestoActivo.id)}>
+                            <button type="button" onClick={() => eliminarCotizacion(cotizacionActivo.id)}>
                                 <FaTrashAlt />
                                 Eliminar
                             </button>

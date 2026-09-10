@@ -165,27 +165,12 @@ export const descargarComprobantePDF = async (documento) => {
     pdf.save(`${documento.tipo_documento || "documento"}-don-jose-${documento.fecha || documento.id}.pdf`)
 }
 
-export const descargarPresupuestoPDF = async (presupuesto) => {
-    const { anchoPagina, margen, pdf } = await crearPDFBase()
-    let y = escribirEncabezado(
-        pdf,
-        anchoPagina,
-        "Don Jose",
-        "Presupuesto de Venta",
-        formatearFecha(presupuesto.fecha),
-    )
-
-    y += 14
-    escribirSeparador(pdf, margen, anchoPagina, y)
-    y = escribirCliente(pdf, margen, presupuesto.cliente, y)
-    y = escribirItems(pdf, margen, anchoPagina, presupuesto.items, y)
-    y = escribirTotal(pdf, margen, anchoPagina, presupuesto.total, [127, 34, 254], y)
-
-    y += 18
-    pdf.setFont("helvetica", "italic")
-    pdf.setFontSize(9)
-    pdf.setTextColor(74, 85, 121)
-    pdf.text("Presupuesto sujeto a disponibilidad de stock.", anchoPagina / 2, y, { align: "center" })
-
-    pdf.save(`presupuesto-don-jose-${presupuesto.fecha || presupuesto.id}.pdf`)
+export const descargarCotizacionPDF = async (cotizacion) => {
+    const { crearCotizacionPDF } = await import("./cotizacionPdf")
+    const respuesta = await fetch("/logo-cotizacion.jpg")
+    if (!respuesta.ok) throw new Error("No se pudo cargar el logo de la cotizacion.")
+    const logo = new Uint8Array(await respuesta.arrayBuffer())
+    const pdf = crearCotizacionPDF(cotizacion, logo)
+    const numero = String(cotizacion.numero || cotizacion.id).replace(/[^a-zA-Z0-9_-]/g, "-")
+    pdf.save(`cotizacion-don-jose-${numero}.pdf`)
 }

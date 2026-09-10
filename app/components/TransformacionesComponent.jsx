@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { SelectorProducto } from "./SelectorProducto"
 import { useEffect, useMemo, useState } from "react"
 import { FaArrowLeft, FaArrowRight, FaCheck } from "react-icons/fa"
 import { obtenerFechaHoraActual } from "../lib/fechas"
@@ -228,22 +229,7 @@ export const TransformacionesComponent = () => {
         <div id="transformacionesContainer">
             <div className="transformacionCampo">
                 <label>Fruta Fresca (Materia Prima)</label>
-                <select value={materiaPrimaId} onChange={(e) => {
-                    setMateriaPrimaId(e.target.value)
-                    setCantidadUtilizada("")
-                }}>
-                    {
-                        productosMateriaPrima.length === 0 ? (
-                            <option value="">Sin fruta fresca</option>
-                        ) : (
-                            productosMateriaPrima.map((producto) => (
-                                <option key={producto.id} value={producto.id}>
-                                    {obtenerNombreProducto(producto)} (Stock: {formatearNumero(obtenerStockProducto(producto))} {formatearTipoStock(obtenerTipoStock(producto), obtenerStockProducto(producto))})
-                                </option>
-                            ))
-                        )
-                    }
-                </select>
+                <SelectorProducto productos={productosMateriaPrima} value={materiaPrimaId} entidad="Materia prima" onChange={id => { setMateriaPrimaId(id); setCantidadUtilizada("") }} />
             </div>
 
             <div className="transformacionCampo">
@@ -265,19 +251,7 @@ export const TransformacionesComponent = () => {
 
             <div className="transformacionCampo transformacionProductoFinal">
                 <label>Producto Final</label>
-                <select value={productoFinalId} onChange={(e) => setProductoFinalId(e.target.value)}>
-                    {
-                        productosFinales.length === 0 ? (
-                            <option value="">Sin productos</option>
-                        ) : (
-                            productosFinales.map((producto) => (
-                                <option key={producto.id} value={producto.id}>
-                                    {obtenerNombreProducto(producto)} (Stock: {formatearNumero(obtenerStockProducto(producto))} {formatearTipoStock(obtenerTipoStock(producto), obtenerStockProducto(producto))})
-                                </option>
-                            ))
-                        )
-                    }
-                </select>
+                <SelectorProducto productos={productosFinales} value={productoFinalId} entidad="Producto final" onChange={id => { setProductoFinalId(id) }} />
             </div>
 
             <div className="transformacionCampo">
