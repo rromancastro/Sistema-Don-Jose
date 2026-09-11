@@ -61,6 +61,26 @@ export const calcularConversion = (origen, destino, cantidad) => {
         peso_origen_kg: pesoOrigen, peso_destino_kg: pesoDestino }
 }
 
+export const calcularConversionPorUnidades = (origen, destino, unidades, pesoUnidadKg) => {
+    const cantidad = Number(unidades)
+    const peso = Number(pesoUnidadKg)
+    if (!Number.isSafeInteger(cantidad) || cantidad <= 0) throw new Error("Ingresá una cantidad entera de unidades a obtener, mayor que cero.")
+    if (!Number.isFinite(peso) || peso <= 0) throw new Error("Ingresá el peso de cada unidad, mayor que cero.")
+    if (!origen || !destino) throw new Error("Seleccioná origen y destino.")
+    const stockDestino = Number(destino.stock_kg ?? destino.stock ?? destino.cantidad_kg ?? 0)
+    if (stockDestino !== 0 && Math.abs(Number(destino.atributos?.peso_neto_kg || 0) - peso) > 1e-10) {
+        throw new Error("El destino ya tiene stock con otro peso por unidad. Creá otro producto para este peso.")
+    }
+    const pesoOrigen = origen.tipo_producto === "caja" ? Number(origen.atributos?.peso_neto_kg) : 1
+    if (!Number.isFinite(pesoOrigen) || pesoOrigen <= 0) throw new Error("Configurá el peso neto de la caja de origen en Stock.")
+    let utilizada = cantidad * peso / pesoOrigen
+    if (origen.tipo_producto === "caja") {
+        if (Math.abs(utilizada - Math.round(utilizada)) > 1e-9) throw new Error("Las unidades y su peso deben consumir cajas completas. Ajustá la cantidad o el peso.")
+        utilizada = Math.round(utilizada)
+    }
+    return calcularConversion(origen, { ...destino, atributos: { ...destino.atributos, peso_neto_kg: peso } }, utilizada)
+}
+
 export const cambioStock = (producto, stock) => ({
     stock,
     ...(Object.hasOwn(producto, "stock_kg") ? { stock_kg: stock } : {}),

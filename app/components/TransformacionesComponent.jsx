@@ -9,6 +9,7 @@ import { actualizarDocumento, crearDocumento, obtenerDocumentos } from "../lib/f
 import { formatearNumero, formatearTipoStock, normalizarLista, normalizarProducto, obtenerNombreProducto, obtenerStockProducto, obtenerTipoStock } from "../lib/normalizadores"
 import { NavComponent } from "./NavComponent"
 import { ConversionEmpaque } from "./ConversionEmpaque"
+import { CrearProductoTransformacion } from "./CrearProductoTransformacion"
 import { obtenerTipoProducto } from "../lib/normalizadores"
 
 const ESTADO_PENDIENTE = "pendiente"
@@ -228,7 +229,7 @@ export const TransformacionesComponent = () => {
         </NavComponent>
 
         <div id="transformacionesContainer">
-            <ConversionEmpaque productos={productos} onRegistrada={({ productos: actualizados, transformacion }) => {
+            <ConversionEmpaque productos={productos} onProductoCreado={producto => setProductos(actuales => [...actuales, producto])} onRegistrada={({ productos: actualizados, transformacion }) => {
                 setProductos((actuales) => actuales.map((item) => actualizados.find((nuevo) => nuevo.id === item.id) || item))
                 setTransformaciones((actuales) => [transformacion, ...actuales.filter((item) => item.id !== transformacion.id)])
             }} />
@@ -258,6 +259,10 @@ export const TransformacionesComponent = () => {
             <div className="transformacionCampo transformacionProductoFinal">
                 <label>Producto Final</label>
                 <SelectorProducto productos={productosFinales} value={productoFinalId} entidad="Producto final" onChange={id => { setProductoFinalId(id) }} />
+                <CrearProductoTransformacion tipo="deshidratado" onCreado={producto => {
+                    setProductos(actuales => [...actuales, producto])
+                    setProductoFinalId(producto.id)
+                }} />
             </div>
 
             <div className="transformacionCampo">
@@ -310,6 +315,7 @@ export const TransformacionesComponent = () => {
                                 </div>
 
                                 <div className="transformacionCardDatos">
+                                    {transformacion.peso_destino_kg > 0 && <span>Peso por unidad obtenida: {formatearNumero(transformacion.peso_destino_kg, { maximumFractionDigits: 6 })} kg</span>}
                                     <span>Usado: {formatearNumero(transformacion.cantidad_utilizada)} {formatearTipoStock(transformacion.tipo_stock_materia_prima, transformacion.cantidad_utilizada)}</span>
                                     <span>Obtenido: {formatearNumero(transformacion.cantidad_obtenida)} {formatearTipoStock(transformacion.tipo_stock_final, transformacion.cantidad_obtenida)}</span>
                                     <span>Rendimiento: {formatearNumero(transformacion.rendimiento_final_porcentaje ?? transformacion.rendimiento_porcentaje)}%</span>

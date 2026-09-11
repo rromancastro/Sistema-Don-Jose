@@ -1,10 +1,10 @@
 import { collection, doc, runTransaction } from "firebase/firestore"
 import { db } from "./firebase"
 import { normalizarProducto, obtenerStockProducto } from "./normalizadores"
-import { calcularConversion, cambioStock } from "./productosStock"
+import { calcularConversionPorUnidades, cambioStock } from "./productosStock"
 import { obtenerFechaHoraActual } from "./fechas"
 
-export const registrarConversion = async ({ origenId, destinoId, cantidad, operacionId }) => {
+export const registrarConversion = async ({ origenId, destinoId, unidades, pesoUnidadKg, operacionId }) => {
     const registroRef = doc(collection(db, "transformaciones"), operacionId)
     const origenRef = doc(db, "productos", origenId)
     const destinoRef = doc(db, "productos", destinoId)
@@ -16,7 +16,7 @@ export const registrarConversion = async ({ origenId, destinoId, cantidad, opera
         const origen = normalizarProducto({ ...origenDoc.data(), id: origenDoc.id })
         const destino = normalizarProducto({ ...destinoDoc.data(), id: destinoDoc.id })
         if (registro.exists()) return { transformacion: { ...registro.data(), id: registro.id }, productos: [origen, destino] }
-        const calculo = calcularConversion(origen, destino, cantidad)
+        const calculo = calcularConversionPorUnidades(origen, destino, unidades, pesoUnidadKg)
         const stockOrigen = obtenerStockProducto(origen) - calculo.cantidad_utilizada
         const stockDestino = obtenerStockProducto(destino) + calculo.cantidad_obtenida
         if (!Number.isFinite(stockDestino)) throw new Error("El stock de destino no es válido.")
@@ -32,11 +32,12 @@ export const registrarConversion = async ({ origenId, destinoId, cantidad, opera
             producto_final: { id: destino.id, nombre: destino.nombre, tipo_stock: destino.tipo_stock, stock_anterior: obtenerStockProducto(destino), stock_actualizado: stockDestino },
         }
         tx.update(origenRef, cambioStock(origen, stockOrigen))
-        tx.update(destinoRef, cambioStock(destino, stockDestino))
+        const cambioDestino = { ...cambioStock(destino, stockDestino), atributos: { ...destino.atributos, peso_neto_kg: calculo.peso_destino_kg } }
+        tx.update(destinoRef, cambioDestino)
         tx.set(registroRef, transformacion)
         return { transformacion: { ...transformacion, id: registroRef.id }, productos: [
             { ...origen, ...cambioStock(origen, stockOrigen) },
-            { ...destino, ...cambioStock(destino, stockDestino) },
+            { ...destino, ...cambioDestino },
         ] }
     })
 }

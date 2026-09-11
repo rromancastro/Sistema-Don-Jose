@@ -4904,6 +4904,46 @@ section > div h2 {
   background-color: #2B7FFF;
 }
 
+.crearProductoTransformacion {
+  margin-top: 10px;
+}
+.crearProductoTransformacion button {
+  padding: 10px 16px;
+  border: 1px solid #d8c8ff;
+  border-radius: 10px;
+  background: #f5f2ff;
+  color: #6d16df;
+  cursor: pointer;
+}
+.crearProductoTransformacion button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.crearProductoTransformacion form {
+  margin-top: 12px;
+}
+.crearProductoTransformacion fieldset {
+  min-width: 0;
+  border: 1px solid #d8c8ff;
+  border-radius: 10px;
+  padding: 16px;
+  display: grid;
+  gap: 10px;
+}
+.crearProductoTransformacion label {
+  display: block;
+  margin-bottom: 6px;
+}
+.crearProductoTransformacion p {
+  font-size: 13px;
+  margin-top: 6px;
+}
+.crearProductoTransformacion .crearProductoAcciones {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .animClick {
   transition: 0.2s;
   cursor: pointer;

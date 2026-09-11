@@ -1,4 +1,5 @@
 import { ATRIBUTOS_PRODUCTO, esEmpaque } from "../lib/productosStock"
+import { PesoUnidad } from "./PesoUnidad"
 import { obtenerTipoProducto, obtenerNombreProducto } from "../lib/normalizadores"
 
 export const AtributosProducto = ({ producto, productos, cambiarCampo }) => <>
@@ -10,9 +11,11 @@ export const AtributosProducto = ({ producto, productos, cambiarCampo }) => <>
             {productos.filter((item) => obtenerTipoProducto(item) === (producto.tipo_producto === "caja" ? "deshidratado" : "caja") && item.id !== producto.id)
                 .map((item) => <option key={item.id} value={item.id}>{obtenerNombreProducto(item)}</option>)}
         </select>
-        <p>El peso es neto, sin el empaque. Para 250 g ingresá 0,25 kg.</p>
+        <p>Indicá cuánto pesa el contenido de cada caja o envase, sin el empaque.</p>
+        <PesoUnidad value={producto.atributos?.peso_neto_kg ?? ""}
+            onChange={valor => cambiarCampo("atributos", { ...producto.atributos, peso_neto_kg: valor })} />
     </>}
-    {(ATRIBUTOS_PRODUCTO[producto.tipo_producto] || []).map(({ campo, etiqueta, numero, max, requerido }) => <div key={campo}>
+    {(ATRIBUTOS_PRODUCTO[producto.tipo_producto] || []).filter(({ campo }) => campo !== "peso_neto_kg").map(({ campo, etiqueta, numero, max, requerido }) => <div key={campo}>
         <label htmlFor={`atributo-${campo}`}>{etiqueta}</label>
         <input id={`atributo-${campo}`} type={numero ? "number" : "text"}
             min={numero ? (requerido ? "0.000001" : "0") : undefined} max={max} step={numero ? "any" : undefined}

@@ -270,6 +270,31 @@ section {
     background-color: #2B7FFF;
 }
 
+.crearProductoTransformacion {
+    margin-top: 10px;
+    button {
+        padding: 10px 16px;
+        border: 1px solid #d8c8ff;
+        border-radius: 10px;
+        background: #f5f2ff;
+        color: #6d16df;
+        cursor: pointer;
+        &:disabled { opacity: .5; cursor: not-allowed; }
+    }
+    form { margin-top: 12px; }
+    fieldset {
+        min-width: 0;
+        border: 1px solid #d8c8ff;
+        border-radius: 10px;
+        padding: 16px;
+        display: grid;
+        gap: 10px;
+    }
+    label { display: block; margin-bottom: 6px; }
+    p { font-size: 13px; margin-top: 6px; }
+    .crearProductoAcciones { display: flex; gap: 10px; flex-wrap: wrap; }
+}
+
 .animClick {
     transition: .2s;
     cursor: pointer;
